@@ -1,4 +1,4 @@
-/* $Id: sendrecv.c,v 1.3 2009-01-14 03:02:22 nick Exp $ */
+/* $Id: sendrecv.c,v 1.4 2009-01-14 07:40:27 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,10 +15,12 @@
 
 #include "sendrecv.h"
 
-#define PREAMBLE_LEN (50)
+#define PREAMBLE_LEN (10)
 #define PREAMBLE_BYTE (0x55)
-#define UARTSYNC_LEN (5)
+#define UARTSYNC_LEN (1)
 #define UARTSYNC_BYTE (0xFF)
+#define SLACK_LEN (20)
+#define SLACK_BYTE (0xAA)
 
 int baud_table[][2] = {
     /* { B38400, 38400 },
@@ -26,9 +28,13 @@ int baud_table[][2] = {
     { B9600, 9600 },
     { B4800, 4800 },
     { B2400, 2400 },
-    
+    { B1200, 1200 },
+    { B600, 600 },
+    { B300, 300 },
     { 0, 0 },
 };
+
+char preamble[] = "UUUUUUUUUU\xFF\xFF\x00";
 
 int initialize_port(int fd, int baud_rate) {
     
@@ -62,14 +68,15 @@ int initialize_port(int fd, int baud_rate) {
 }
 
 int send_packet(int fd, unsigned char *data, unsigned int data_length) {
-	unsigned int packet_length = PREAMBLE_LEN + UARTSYNC_LEN + 1 + data_length;
-	unsigned char *send_buffer = (unsigned char *)malloc(packet_length);
+	unsigned int packet_length = PREAMBLE_LEN + UARTSYNC_LEN + 1 + data_length + SLACK_LEN;
+	unsigned char *send_buffer = (unsigned char *)calloc(packet_length, 1);
 	
 	memset(send_buffer, PREAMBLE_BYTE, PREAMBLE_LEN);
 	memset(send_buffer + PREAMBLE_LEN, UARTSYNC_BYTE, UARTSYNC_LEN);
         send_buffer[PREAMBLE_LEN + UARTSYNC_LEN] = 0;
 	memcpy(send_buffer + PREAMBLE_LEN + UARTSYNC_LEN + 1, data, data_length);
-	/* memcpy(send_buffer + PREAMBLE_LEN + UARTSYNC_LEN + 1, "HELLO", 5); */
+	memset(send_buffer + PREAMBLE_LEN + UARTSYNC_LEN + 1 + data_length, SLACK_BYTE, SLACK_LEN);
+	
 	int n = 0;
 	while (n < packet_length) {
 		int e = write(fd, send_buffer+n, packet_length - n);
@@ -88,33 +95,91 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length) {
     unsigned char c;
     int e;
     
+    struct pollfd pollfds[] = {{
+	fd, POLLIN, 0    
+    }};
+    
     do {
-        e = read(fd, &c, 1);
-        if (e == -1) {
-            fprintf(stderr, "sync1: WARNING: recv_packet sync1: %s\n", strerror(errno));
-        } else {
-	    /* fprintf(stderr, "sync1: %02X\n", c); */
+	e = poll(pollfds, 1, 1000);
+	if (e == -1) {
+	    fprintf(stderr, "WARNING: recv_packet sync1 poll: %s\n", strerror(errno));
+	    return 0;
+	} else if (e == 0) {
+	    fprintf(stderr, "WARNING: recv_packet sync1 poll timeout\n");
+	    return 0;
 	}
+    
+        e = read(fd, &c, 1);
+	if (e == -1) {
+            fprintf(stderr, "WARNING: recv_packet sync1 read: %s\n", strerror(errno));
+	    return 0;
+        } 
     } while (c != UARTSYNC_BYTE);
     
     do {
+	
+	e = poll(pollfds, 1, 1000);
+	if (e == -1) {
+	    fprintf(stderr, "WARNING: recv_packet sync2 poll: %s\n", strerror(errno));
+	    return 0;
+	} else if (e == 0) {
+	    fprintf(stderr, "WARNING: recv_packet sync2 poll timeout\n");
+	    return 0;
+	}
+    
         e = read(fd, &c, 1);
         if (e == -1) {
-            fprintf(stderr, "sync2: WARNING: recv_packet sync2: %s\n", strerror(errno));
-        } else {
-	    /* fprintf(stderr, "sync2: %02X\n", c); */
+            fprintf(stderr, "WARNING: recv_packet sync2: %s\n", strerror(errno));
+	    return 0;
 	}
-    } while (c != 0x00);
+    } while (c == UARTSYNC_BYTE);
     
     int n = 0;
     while (n < data_length) {
+	
+	e = poll(pollfds, 1, 1000);
+	if (e == -1) {
+	    fprintf(stderr, "WARNING: recv_packet read poll: %s\n", strerror(errno));
+	    return n;
+	} else if (e == 0) {
+	    fprintf(stderr, "WARNING: recv_packet read poll timeout\n");
+	    return n;
+	}
+    
         e = read(fd, data+n, data_length-n);
-        if (e == -1) {
-            fprintf(stderr, "WARNING: recv_packet read: %s\n", strerror(errno));
+	if (e == -1) {
+            fprintf(stderr, "WARNING: recv_packet read read: %s\n", strerror(errno));
+	    return n;
         } else {
             n += e;
         }
     }
         
     return n;
+}
+
+void flush_packet(fd) {
+    int e;
+    char c;
+    
+    struct pollfd pollfds[] = {{
+	fd, POLLIN, 0    
+    }};
+    
+    while(1) {
+	e = poll(pollfds, 1, 1000);
+	if (e == -1) {
+	    fprintf(stderr, "WARNING: flush_packet poll: %s\n", strerror(errno));
+	    return;
+	} else if (e == 0) {
+	    /* fprintf(stderr, "WARNING: flush_packet poll timeout\n"); */
+	    return;
+	}
+    
+        e = read(fd, &c, 1);
+	if (e == -1) {
+            fprintf(stderr, "WARNING: flush_packet ead: %s\n", strerror(errno));
+	    return;
+        } 
+    };
 }

@@ -1,8 +1,8 @@
-# $Id: Makefile,v 1.2 2009-01-14 03:02:21 nick Exp $
+# $Id: Makefile,v 1.3 2009-01-14 07:40:27 nick Exp $
 
 CFLAGS = -O2 -Wall
 
-all: send_packets recv_packets test_ber
+all: send_packets recv_packets test_ber mktestdata
 
 send_packets: send_packets.o sendrecv.o
 

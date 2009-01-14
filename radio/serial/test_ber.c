@@ -1,4 +1,4 @@
-/* $Id: test_ber.c,v 1.3 2009-01-14 03:02:22 nick Exp $ */
+/* $Id: test_ber.c,v 1.4 2009-01-14 07:40:27 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,15 +7,15 @@
 #include <errno.h>
 #include <string.h>
 
-#include <poll.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+#include <sys/wait.h>
 
 #include "sendrecv.h"
 
-unsigned char testdata[10240];
-unsigned char recvdata[10240];
+unsigned char testdata[1024];
+unsigned char recvdata[1024];
 
 int bit_compare(unsigned char *a, unsigned char *b, unsigned int len) {
     int i, r=0;
@@ -29,82 +29,20 @@ int bit_compare(unsigned char *a, unsigned char *b, unsigned int len) {
     return r;
 }
 
-int die(char *s) {
-    fprintf(stderr, "DIE %s\n", s);
-    exit(1);
-}
-
-unsigned char *test_ber(int fd_tx, int fd_rx, unsigned char *data, unsigned char *recv, unsigned int data_length)
-{
-
-    struct pollfd pollfds[2] = {
-        { fd_rx, POLLIN, 0 } ,
-	{ fd_tx, POLLOUT, 0 } ,
-    };
-
-    int n_sent = 0;
-    int n_recv = 0;
-
-    int state = 0;
-    
-    if (!recv) recv = (unsigned char *)calloc(data_length,1);
-    
-    while ((n_sent < data_length) || (n_recv < data_length)) {
-	pollfds[0].events = (n_recv < data_length)?POLLIN:0;
-	pollfds[1].events = (n_sent < data_length)?POLLOUT:0;
-
-	int e = poll(pollfds, 2, 1000);
-	if (e == 0) break;
-
-	if (pollfds[0].revents & POLLIN) {
-            switch (state) {
-                case 0:
-                    e = read(fd_rx, recv, 1);
-                    if (e == 1 && recv[0] == 0x55) state = 1;
-                    break;
-                case 1:
-                case 2:
-                    e = read(fd_rx, recv, 1);
-                    if (e == 1 && recv[0] == 0x00) state = 3;
-                    break;
-                case 3:
-                    e = read(fd_rx, recv + n_recv, data_length - n_recv);
-                    if (e>0) n_recv += e;
-            }
-            fprintf(stderr, "STATE %d GOT %02X\n", state, recv[0]);
-                    
-	}
-
-	if (pollfds[1].revents & POLLOUT) {
-            switch (state) {
-                case 0:
-                    e = write(fd_tx, "\x55", 1);
-                    break;
-                case 1:
-                    e = write(fd_tx, "\xFF\xFF\x00", 3);
-                    state = 2;
-                    break;
-                case 2:
-                case 3:
-                    e = write(fd_tx, data + n_sent, data_length - n_sent);
-                    if (e>0) n_sent += e;
-            }
-	}
-                
-    }
-    
-    return recv;
+void alarmhandler(int a) {
+    fprintf(stderr, "GOT ALARM\n");
 }
 
 int main(int argc, char **argv) {
 
+    
     if (argc<3) {
         fprintf(stderr, "usage: %s <txdevname> <rxdevname>\n", argv[0]);
         exit(1);
     }
 
-    int fd_tx = open(argv[1], O_WRONLY | O_NONBLOCK);
-    int fd_rx = open(argv[2], O_RDONLY | O_NONBLOCK);
+    int fd_tx = open(argv[1], O_WRONLY );
+    int fd_rx = open(argv[2], O_RDONLY );
     
     if (fd_tx < 0 || fd_rx < 0) {
         fprintf(stderr, "couldn't open device: %s", strerror(errno));
@@ -117,8 +55,10 @@ int main(int argc, char **argv) {
         exit(2);
     }
     fclose(fp);
+    /* memset(testdata, 0xAA, sizeof(testdata)); */
  
-    int i;
+    int i, j, k;
+    
     for (i=0; baud_table[i][1]; i++) {
         int baud_num = baud_table[i][0];
         int baud_rate = baud_table[i][1];
@@ -126,11 +66,34 @@ int main(int argc, char **argv) {
         initialize_port(fd_rx, baud_num);
         initialize_port(fd_tx, baud_num);
     
-        test_ber(fd_tx, fd_rx, testdata, recvdata, sizeof(testdata));
-        int errors = bit_compare(testdata, recvdata, sizeof(testdata));
-    
-        printf("BAUD %d ERRORS %d BER %f\n", baud_rate, errors, (double)errors/(sizeof(testdata)*8));
-    }
+        for (j=0; j < 10; j++) {
         
+            flush_packet(fd_rx);
+            
+            pid_t childpid = fork();
+            if (childpid == 0) {
+                /* the child */
+                usleep(10000);
+                send_packet(fd_tx, testdata, sizeof(testdata));
+                usleep(100000);
+                exit(0);
+            }
+            int nread = recv_packet(fd_rx, recvdata, sizeof(recvdata));
+            wait(NULL);
+            
+            
+            int errors = bit_compare(testdata, recvdata, sizeof(testdata));
+        
+            printf("baud=%6d test=%2d nread=%d errors=%d ber=%f\n", baud_rate, j, nread, errors, (double)errors/(sizeof(testdata)*8));
+    
+            if (errors < 100) {
+                for (k=0; k < nread; k++) {
+                    if (testdata[k] != recvdata[k])
+                        printf("%6d %02X %02X\n", k, testdata[k], recvdata[k]);
+                }
+            }
+        }
+    }
+    
     return 0;
 }
