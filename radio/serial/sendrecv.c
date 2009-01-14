@@ -1,4 +1,4 @@
-/* $Id: sendrecv.c,v 1.1 2008-12-10 05:43:58 nick Exp $ */
+/* $Id: sendrecv.c,v 1.2 2009-01-14 00:11:54 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,26 +15,12 @@
 
 #include "sendrecv.h"
 
-#define PREAMBLE_LEN (12)
+#define PREAMBLE_LEN (50)
 #define PREAMBLE_BYTE (0x55)
-#define UARTSYNC_LEN (2)
+#define UARTSYNC_LEN (5)
 #define UARTSYNC_BYTE (0xFF)
 
-int baud_numbers[NUM_BAUD_RATES] = { B1200, B1800, B2400 };
-
 int initialize_port(int fd, int baud_rate) {
-    int i;
-    int baud_number = B2400;
-    /*for (i=0; i<NUM_BAUD_RATES; i++) {
-        if (baud_rates[i] == baud_rate) break;
-    }
-    if (i>=NUM_BAUD_RATES) {
-        fprintf(stderr, "WARNING: Invalid baud rate: %d\n", baud_rate);
-    } else {
-        baud_number = baud_numbers[i];
-    }
-    */
-    
     
     struct termios termios;
     if (tcgetattr(fd, &termios) < 0) {
@@ -43,8 +29,8 @@ int initialize_port(int fd, int baud_rate) {
         cfmakeraw(&termios);
         termios.c_cflag |= CLOCAL;
         termios.c_cflag &= ~CRTSCTS;
-        cfsetispeed(&termios, baud_number);
-        cfsetospeed(&termios, baud_number);
+        cfsetispeed(&termios, baud_rate);
+        cfsetospeed(&termios, baud_rate);
         
         if (tcsetattr(fd, TCSANOW, &termios) < 0) {
             fprintf(stderr, "WARNING: tcsetattr failed: %s\n", strerror(errno));
@@ -73,7 +59,7 @@ int send_packet(int fd, unsigned char *data, unsigned int data_length) {
 	memset(send_buffer + PREAMBLE_LEN, UARTSYNC_BYTE, UARTSYNC_LEN);
         send_buffer[PREAMBLE_LEN + UARTSYNC_LEN] = 0;
 	memcpy(send_buffer + PREAMBLE_LEN + UARTSYNC_LEN + 1, data, data_length);
-	
+	/* memcpy(send_buffer + PREAMBLE_LEN + UARTSYNC_LEN + 1, "HELLO", 5); */
 	int n = 0;
 	while (n < packet_length) {
 		int e = write(fd, send_buffer+n, packet_length - n);
@@ -95,15 +81,19 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length) {
     do {
         e = read(fd, &c, 1);
         if (e == -1) {
-            fprintf(stderr, "WARNING: recv_packet sync1: %s\n", strerror(errno));
-        }
+            fprintf(stderr, "sync1: WARNING: recv_packet sync1: %s\n", strerror(errno));
+        } else {
+	    /* fprintf(stderr, "sync1: %02X\n", c); */
+	}
     } while (c != UARTSYNC_BYTE);
     
     do {
         e = read(fd, &c, 1);
         if (e == -1) {
-            fprintf(stderr, "WARNING: recv_packet sync2: %s\n", strerror(errno));
-        }
+            fprintf(stderr, "sync2: WARNING: recv_packet sync2: %s\n", strerror(errno));
+        } else {
+	    /* fprintf(stderr, "sync2: %02X\n", c); */
+	}
     } while (c != 0x00);
     
     int n = 0;
@@ -122,34 +112,50 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length) {
 unsigned char *test_ber(int fd_tx, int fd_rx, unsigned char *data, unsigned int data_length) {
     struct pollfd pollfds[2] = {
         { fd_rx, POLLIN, 0 } ,
-        { fd_tx, POLLOUT, 0 }
+	{ fd_tx, POLLOUT, 0 } ,
     };
     
     int n_sent = 0;
     int n_recv = 0;
+    int n_print = 0;
+
     unsigned char *recv = (unsigned char *)malloc(data_length);
     
-    fprintf(stderr, "Testing BER with %d bytes\n%s\n", data_length, data);
+    fprintf(stderr, "Testing BER with %d bytes\n", data_length);
     
-    int timeout = 0;
-    while (timeout < 10 && (n_sent < data_length || n_recv < data_length)) {
-        poll(pollfds, (n_sent < data_length)?2:1, 1000);
-        if (n_recv < data_length) {
-            if (pollfds[0].revents & POLLIN) {
-                int e = read(fd_rx, recv + n_recv, data_length - n_recv);
-                if (e>0) n_recv += e;
-                fprintf(stderr, "R%d", n_recv);
-            } else {
-                timeout++;
-                fprintf(stderr, "T%d", timeout);
-            }
-        }
-        if (n_sent < data_length && pollfds[1].revents & POLLOUT) {
-            int e = write(fd_tx, data + n_sent, data_length - n_sent);
+    printf("HELLO!\n");
+
+    while ((n_sent < data_length) || (n_recv < data_length)) {
+	pollfds[0].events = (n_recv < data_length)?POLLIN:0;
+	pollfds[1].events = (n_sent < data_length)?POLLOUT:0;
+
+	int e = poll(pollfds, 2, 1000);
+	if (e == 0) break;
+
+	if (pollfds[0].revents & POLLIN) {
+	    if (n_recv == 0) {
+		e = read(fd_rx, recv, 1);
+		if (e == 1 && recv[0] == data[0]) n_recv++;
+	    } else {
+	    	e = read(fd_rx, recv + n_recv, data_length - n_recv);
+	    	if (e>0) n_recv += e;
+	    }
+	    printf("R%d\n", e);
+	}
+
+	if (pollfds[1].revents & POLLOUT) {
+    	    e = write(fd_tx, data + n_sent, data_length - n_sent);
             if (e>0) n_sent += e;
-            fprintf(stderr, "W%d", n_sent);   
-        }
+	    printf("W%d\n", e);
+	}
+
+	while (n_print < n_recv) {
+	    printf ("%6d %02X %02X\n", n_print, data[n_print], recv[n_print]);
+	    n_print++;
+	}
     }
-    fprintf(stderr, "Received %d bytes\n%s\n", n_recv, recv);
+
+
+    fprintf(stderr, "Received %d bytes\n", n_recv);
     return recv;
 }

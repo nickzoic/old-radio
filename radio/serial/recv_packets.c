@@ -1,4 +1,4 @@
-/* $Id: recv_packets.c,v 1.1 2008-12-10 05:43:58 nick Exp $ */
+/* $Id: recv_packets.c,v 1.2 2009-01-14 00:11:54 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
+#include <termios.h>
 
 #include "sendrecv.h"
 #include "sendrecv_packets.h"
@@ -53,21 +54,17 @@ int main(int argc, char **argv) {
     int j, k;
     unsigned char buffer[PACKET_LENGTH];
     
-    for (i=0; i<NUM_BAUD_RATES; i++) {
-        int baud_rate = baud_rates[i];
-        initialize_port(serial_fd, baud_rate);
-        printf("Baud Rate: %d\n", baud_rate);
-        for (j=0; j<NUM_PACKETS; j++) {
-            printf ("\tPacket %d ...", j);
-            recv_packet(serial_fd, buffer, PACKET_LENGTH);
-            
-            for (k=0; k<PACKET_LENGTH; k++) {
-                fprintf(stderr,"%d %02X %02X\n", k, buffer[k], packet_data[j][k]);
-            }
-            int bits = bit_compare(buffer, packet_data[j], PACKET_LENGTH);
-            printf ("Bit Errors: %d\n", bits);
-            sleep(1);
+    initialize_port(serial_fd, B9600);
+    for (j=0; j<NUM_PACKETS; j++) {
+        printf ("\tPacket %d ...", j);
+        recv_packet(serial_fd, buffer, PACKET_LENGTH);
+        
+        for (k=0; k<PACKET_LENGTH; k++) {
+            fprintf(stderr,"%d %02X %02X\n", k, buffer[k], packet_data[j][k]);
         }
+        int bits = bit_compare(buffer, packet_data[j], PACKET_LENGTH);
+        printf ("Bit Errors: %d\n", bits);
+        sleep(1);
     }
     return 0;
     

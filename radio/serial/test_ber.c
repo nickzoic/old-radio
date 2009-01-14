@@ -1,4 +1,4 @@
-/* $Id: test_ber.c,v 1.1 2008-12-10 05:44:28 nick Exp $ */
+/* $Id: test_ber.c,v 1.2 2009-01-14 00:11:54 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,19 +9,7 @@
 
 #include "sendrecv.h"
 
-unsigned char testdata[] =
-       "\x55\x55\x55\x55\x55\x55\x55\xFF\xFF"
-       "On success, the number of bytes read is returned (zero indi"
-       "cates  end  of  file),  and the file position is advanced by "
-       "this number.  It is not an error if this number  is  smaller "
-       "than  the  number  of  bytes  requested; this may happen for "
-       "example because fewer bytes are actually available right now "
-       "(maybe  because  we were close to end-of-file, or because we "
-       "are reading from a pipe, or from  a  terminal),  or  because "
-       "read()  was  interrupted  by  a  signal.   On  error,  -1 is "
-       "returned, and errno is set appropriately.  In this  case  it "
-       "is  left  unspecified  whether  the  file  position (if any) "
-       "changes.";
+unsigned char testdata[10240];
 
 int main(int argc, char **argv) {
 
@@ -30,14 +18,18 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    int fd_tx = open(argv[1], O_WRONLY);
-    int fd_rx = open(argv[2], O_RDONLY);
+    int fd_tx = open(argv[1], O_WRONLY | O_NONBLOCK);
+    int fd_rx = open(argv[2], O_RDONLY | O_NONBLOCK);
     
     if (fd_tx < 0 || fd_rx < 0) {
         fprintf(stderr, "couldn't open device: %s", strerror(errno));
         exit(1);
     }
     
+    FILE *fp = fopen("test_ber.data", "rb");
+    fread(testdata, 1, sizeof(testdata), fp);
+    fclose(fp);
+ 
     int baud_rate = 2400;
     initialize_port(fd_rx, baud_rate);
     initialize_port(fd_tx, baud_rate);
