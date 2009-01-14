@@ -1,4 +1,4 @@
-/* $Id: sendrecv.c,v 1.2 2009-01-14 00:11:54 nick Exp $ */
+/* $Id: sendrecv.c,v 1.3 2009-01-14 03:02:22 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +19,16 @@
 #define PREAMBLE_BYTE (0x55)
 #define UARTSYNC_LEN (5)
 #define UARTSYNC_BYTE (0xFF)
+
+int baud_table[][2] = {
+    /* { B38400, 38400 },
+    { B19200, 19200 }, */
+    { B9600, 9600 },
+    { B4800, 4800 },
+    { B2400, 2400 },
+    
+    { 0, 0 },
+};
 
 int initialize_port(int fd, int baud_rate) {
     
@@ -107,55 +117,4 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length) {
     }
         
     return n;
-}
-
-unsigned char *test_ber(int fd_tx, int fd_rx, unsigned char *data, unsigned int data_length) {
-    struct pollfd pollfds[2] = {
-        { fd_rx, POLLIN, 0 } ,
-	{ fd_tx, POLLOUT, 0 } ,
-    };
-    
-    int n_sent = 0;
-    int n_recv = 0;
-    int n_print = 0;
-
-    unsigned char *recv = (unsigned char *)malloc(data_length);
-    
-    fprintf(stderr, "Testing BER with %d bytes\n", data_length);
-    
-    printf("HELLO!\n");
-
-    while ((n_sent < data_length) || (n_recv < data_length)) {
-	pollfds[0].events = (n_recv < data_length)?POLLIN:0;
-	pollfds[1].events = (n_sent < data_length)?POLLOUT:0;
-
-	int e = poll(pollfds, 2, 1000);
-	if (e == 0) break;
-
-	if (pollfds[0].revents & POLLIN) {
-	    if (n_recv == 0) {
-		e = read(fd_rx, recv, 1);
-		if (e == 1 && recv[0] == data[0]) n_recv++;
-	    } else {
-	    	e = read(fd_rx, recv + n_recv, data_length - n_recv);
-	    	if (e>0) n_recv += e;
-	    }
-	    printf("R%d\n", e);
-	}
-
-	if (pollfds[1].revents & POLLOUT) {
-    	    e = write(fd_tx, data + n_sent, data_length - n_sent);
-            if (e>0) n_sent += e;
-	    printf("W%d\n", e);
-	}
-
-	while (n_print < n_recv) {
-	    printf ("%6d %02X %02X\n", n_print, data[n_print], recv[n_print]);
-	    n_print++;
-	}
-    }
-
-
-    fprintf(stderr, "Received %d bytes\n", n_recv);
-    return recv;
 }
