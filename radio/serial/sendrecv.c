@@ -1,4 +1,4 @@
-/* $Id: sendrecv.c,v 1.4 2009-01-14 07:40:27 nick Exp $ */
+/* $Id: sendrecv.c,v 1.5 2009-01-20 22:49:19 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,8 +23,8 @@
 #define SLACK_BYTE (0xAA)
 
 int baud_table[][2] = {
-    /* { B38400, 38400 },
-    { B19200, 19200 }, */
+    { B38400, 38400 },
+    { B19200, 19200 },
     { B9600, 9600 },
     { B4800, 4800 },
     { B2400, 2400 },
@@ -37,6 +37,12 @@ int baud_table[][2] = {
 char preamble[] = "UUUUUUUUUU\xFF\xFF\x00";
 
 int initialize_port(int fd, int baud_rate) {
+
+    int i;
+    for (i=0; baud_table[i][1]; i++) {
+	if (baud_rate == baud_table[i][1])
+		baud_rate = baud_table[i][0];
+    }
     
     struct termios termios;
     if (tcgetattr(fd, &termios) < 0) {
