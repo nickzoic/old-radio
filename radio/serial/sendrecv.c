@@ -1,4 +1,4 @@
-/* $Id: sendrecv.c,v 1.5 2009-01-20 22:49:19 nick Exp $ */
+/* $Id: sendrecv.c,v 1.6 2009-01-21 07:22:50 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,6 +33,8 @@ int baud_table[][2] = {
     { B300, 300 },
     { 0, 0 },
 };
+
+#define GETBITS(x,a,b,c) ((((x) >> (a)) & ((1 << ((b)+1))-1)) << (c))
 
 char preamble[] = "UUUUUUUUUU\xFF\xFF\x00";
 
@@ -82,7 +84,7 @@ int send_packet(int fd, unsigned char *data, unsigned int data_length) {
         send_buffer[PREAMBLE_LEN + UARTSYNC_LEN] = 0;
 	memcpy(send_buffer + PREAMBLE_LEN + UARTSYNC_LEN + 1, data, data_length);
 	memset(send_buffer + PREAMBLE_LEN + UARTSYNC_LEN + 1 + data_length, SLACK_BYTE, SLACK_LEN);
-	
+
 	int n = 0;
 	while (n < packet_length) {
 		int e = write(fd, send_buffer+n, packet_length - n);

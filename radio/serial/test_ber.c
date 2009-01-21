@@ -1,4 +1,4 @@
-/* $Id: test_ber.c,v 1.4 2009-01-14 07:40:27 nick Exp $ */
+/* $Id: test_ber.c,v 1.5 2009-01-21 07:22:50 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,8 +14,10 @@
 
 #include "sendrecv.h"
 
-unsigned char testdata[1024];
-unsigned char recvdata[1024];
+int BaudRates[] = { 9600, 4800, 2400, 1200, 0 };
+
+unsigned char testdata[256];
+unsigned char recvdata[256];
 
 int bit_compare(unsigned char *a, unsigned char *b, unsigned int len) {
     int i, r=0;
@@ -59,12 +61,11 @@ int main(int argc, char **argv) {
  
     int i, j, k;
     
-    for (i=0; baud_table[i][1]; i++) {
-        int baud_num = baud_table[i][0];
-        int baud_rate = baud_table[i][1];
-        
-        initialize_port(fd_rx, baud_num);
-        initialize_port(fd_tx, baud_num);
+    for (i=0; BaudRates[i]; i++) {
+        int baud_rate = BaudRates[i];
+
+        initialize_port(fd_rx, baud_rate);
+        initialize_port(fd_tx, baud_rate);
     
         for (j=0; j < 10; j++) {
         

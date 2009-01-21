@@ -1,4 +1,4 @@
-/* $Id: send_byte.c,v 1.1 2009-01-20 22:49:19 nick Exp $ */
+/* $Id: send_byte.c,v 1.2 2009-01-21 07:22:50 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
 
     memset(send_buffer, byte, sizeof(send_buffer));
 
-    printf("Sending ");
+    printf("Sending ...");
 
     int i;
     for (i=0; i< baud_rate / 200; i++) {
