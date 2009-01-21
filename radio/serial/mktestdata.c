@@ -1,19 +1,14 @@
-/* $Id: mktestdata.c,v 1.1 2009-01-14 07:55:08 nick Exp $ */
+/* $Id: mktestdata.c,v 1.2 2009-01-21 10:38:00 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "symbols.h"
+
 int main() {
-    int i;
-    
-    for (i=0; i<10240; i++) {
-        int n = random() & 0x55;
-        n *= 3;
-        n ^= 0xAA;
-        
-        /* int n = (random() % 254) + 1; */
-        
-        putchar(n);        
+    for (int i=0; i<10240; i++) {
+        int n = rand() % SYMBOL_COUNT;
+	putchar(symbol_encode[n]);
     }
     
     return 0;
