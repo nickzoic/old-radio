@@ -1,4 +1,4 @@
-/* $Id: test_symbols.c,v 1.1 2009-01-22 01:07:42 nick Exp $ */
+/* $Id: test_symbols.c,v 1.2 2009-01-27 23:59:18 nick Exp $ */
 /* Test a ridiculously large number of byte strings of varying length
  * to make sure they round-trip properly through bytes_to_symbols and
  * symbols_to_bytes.  
@@ -37,17 +37,17 @@ void print_byte(unsigned char byt) {
 
 int main(int argc, char **argv) {
 
-    unsigned char sym[8];
-    unsigned char byte1[7];
-    unsigned char byte2[7];
+    unsigned char sym[800];
+    unsigned char byte1[701];
+    unsigned char byte2[701];
 
     printf("Testing ");
-    for (long int c=0; c<100000000; c++) {
-	if (c % 2000000 == 0) {
+    for (long int c=0; c<100000; c++) {
+	if (c % 2000 == 0) {
 		putchar('.');  
 		fflush(stdout);
 	}
-	int len = rand() % 8;
+	int len = rand() % 700;
 	
 	for (int i=0; i<len; i++) {
 	    byte1[i] = rand() & 0xFF;
@@ -67,12 +67,15 @@ int main(int argc, char **argv) {
 	}
 	if (!pass) {
 	    printf ("\n\nFAILURE!\n");
+	    printf ("BYTE1 %d\n", len);
 	    for (int i=0; i<len; i++) {
 		print_byte(byte1[i]);
 	    }
+	    printf ("SYM %d\n", nsym);
 	    for (int i=0; i<nsym; i++) {
 		print_symbol(sym[i]);
 	    }
+	    printf ("BYTE2 %d\n", nbyt);
 	    for (int i=0; i<nbyt; i++) {
 		print_byte(byte2[i]);
 	    }

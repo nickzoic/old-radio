@@ -1,4 +1,4 @@
-/* $Id: send_packets.c,v 1.3 2009-01-21 07:22:50 nick Exp $ */
+/* $Id: send_packets.c,v 1.4 2009-01-27 23:59:18 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     for (j=0; j<NUM_PACKETS; j++) {
         printf ("\tPacket %d\n", j);
         send_packet(serial_fd, packet_data[j], PACKET_LENGTH);
-        sleep(2);
+        sleep(5);
     }
     return 0;
 }

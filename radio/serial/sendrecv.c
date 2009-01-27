@@ -1,4 +1,4 @@
-/* $Id: sendrecv.c,v 1.9 2009-01-27 21:55:52 nick Exp $ */
+/* $Id: sendrecv.c,v 1.10 2009-01-27 23:59:18 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,13 +14,11 @@
 #include <sys/ioctl.h>
 
 #include "sendrecv.h"
+#include "symbols.h"
 
-#define PREAMBLE_LEN (10)
-#define PREAMBLE_BYTE (0x55)
-#define UARTSYNC_LEN (1)
-#define UARTSYNC_BYTE (0xFF)
-#define SLACK_LEN (20)
-#define SLACK_BYTE (0xAA)
+#define PREAMBLE_LEN (5)
+#define UARTSYNC_LEN (2)
+#define EPILOGUE_LEN (5)
 
 int baud_table[][2] = {
     { B38400, 38400 },
@@ -33,15 +31,6 @@ int baud_table[][2] = {
     { B300, 300 },
     { 0, 0 },
 };
-
-
-
-char preamble[] = "UUUUUUUUUU\xFF\xFF\x00";
-
-#include "symbols.h"
-#define PREAMBLE SYMBOL_RESERVED_0
-#define ENDFRAME SYMBOL_RESERVED_1
-
 
 int initialize_port(int fd, int baud_rate) {
 
@@ -81,32 +70,35 @@ int initialize_port(int fd, int baud_rate) {
 }
 
 int send_packet(int fd, unsigned char *data, unsigned int data_length) {
-	unsigned int packet_length = PREAMBLE_LEN + UARTSYNC_LEN + 1 + data_length + SLACK_LEN;
-	unsigned char *send_buffer = (unsigned char *)calloc(packet_length, 1);
-	
-	memset(send_buffer, PREAMBLE_BYTE, PREAMBLE_LEN);
-	memset(send_buffer + PREAMBLE_LEN, UARTSYNC_BYTE, UARTSYNC_LEN);
-        send_buffer[PREAMBLE_LEN + UARTSYNC_LEN] = 0;
-	memcpy(send_buffer + PREAMBLE_LEN + UARTSYNC_LEN + 1, data, data_length);
-	memset(send_buffer + PREAMBLE_LEN + UARTSYNC_LEN + 1 + data_length, SLACK_BYTE, SLACK_LEN);
-
-	int n = 0;
-	while (n < packet_length) {
-		int e = write(fd, send_buffer+n, packet_length - n);
-		if (e == -1) {
-			fprintf(stderr, "WARNING: send_packet: %s\n", strerror(errno));
-		} else {
-			n += e;
-		}
-	}
-	free(send_buffer);
+    // XXX TOFIX: Doesn't check for buffer overruns
+    static unsigned char send_buffer[8192];
         
-	return 1;
+    memset(send_buffer, Symbol_Start, PREAMBLE_LEN);
+    memset(send_buffer + PREAMBLE_LEN, Symbol_Sync, UARTSYNC_LEN);
+    int nsym = bytes_to_symbols(data, data_length, send_buffer+PREAMBLE_LEN+UARTSYNC_LEN);
+    memset(send_buffer + PREAMBLE_LEN + UARTSYNC_LEN + nsym, Symbol_End, EPILOGUE_LEN);
+    unsigned int packet_length = PREAMBLE_LEN + UARTSYNC_LEN + nsym + EPILOGUE_LEN;
+    
+    int n = 0;
+    while (n < packet_length) {
+            int e = write(fd, send_buffer+n, packet_length - n);
+            if (e == -1) {
+                    fprintf(stderr, "WARNING: send_packet: %s\n", strerror(errno));
+            } else {
+                    n += e;
+            }
+    }
+    
+    return 1;
 }
+
+#define RECV_BUFFER_LEN (8192)
 
 int recv_packet(int fd, unsigned char *data, unsigned int data_length) {
     unsigned char c;
     int e;
+    
+    static unsigned char recv_buffer[RECV_BUFFER_LEN];
     
     struct pollfd pollfds[] = {{
 	fd, POLLIN, 0    
@@ -115,40 +107,23 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length) {
     do {
 	e = poll(pollfds, 1, 1000);
 	if (e == -1) {
-	    fprintf(stderr, "WARNING: recv_packet sync1 poll: %s\n", strerror(errno));
+	    fprintf(stderr, "WARNING: recv_packet sync poll: %s\n", strerror(errno));
 	    return 0;
 	} else if (e == 0) {
-	    fprintf(stderr, "WARNING: recv_packet sync1 poll timeout\n");
+	    fprintf(stderr, "WARNING: recv_packet sync poll timeout\n");
 	    return 0;
 	}
     
         e = read(fd, &c, 1);
 	if (e == -1) {
-            fprintf(stderr, "WARNING: recv_packet sync1 read: %s\n", strerror(errno));
+            fprintf(stderr, "WARNING: recv_packet sync read: %s\n", strerror(errno));
 	    return 0;
         } 
-    } while (c != UARTSYNC_BYTE);
-    
-    do {
-	
-	e = poll(pollfds, 1, 1000);
-	if (e == -1) {
-	    fprintf(stderr, "WARNING: recv_packet sync2 poll: %s\n", strerror(errno));
-	    return 0;
-	} else if (e == 0) {
-	    fprintf(stderr, "WARNING: recv_packet sync2 poll timeout\n");
-	    return 0;
-	}
-    
-        e = read(fd, &c, 1);
-        if (e == -1) {
-            fprintf(stderr, "WARNING: recv_packet sync2: %s\n", strerror(errno));
-	    return 0;
-	}
-    } while (c == UARTSYNC_BYTE);
+    } while (c != Symbol_Start);
     
     int n = 0;
-    while (n < data_length) {
+    int stopped = 0;
+    while (!stopped && n < RECV_BUFFER_LEN) {
 	
 	e = poll(pollfds, 1, 1000);
 	if (e == -1) {
@@ -159,16 +134,29 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length) {
 	    return n;
 	}
     
-        e = read(fd, data+n, data_length-n);
+        e = read(fd, recv_buffer+n, RECV_BUFFER_LEN-n);
 	if (e == -1) {
             fprintf(stderr, "WARNING: recv_packet read read: %s\n", strerror(errno));
 	    return n;
         } else {
+            for (int i=n; i<n+e; i++) {
+                if (recv_buffer[i] == Symbol_End) stopped = 1;
+            }
             n += e;
         }
     }
-        
-    return n;
+    if (!stopped) return 0;
+    
+    // search for the start of the packet
+    int m = 0;
+    int i = 0;
+    do {
+        m = symbols_to_bytes(recv_buffer+i, n-i, data);
+        i++;
+    } while (m == 0 && i < 10);
+    
+    fprintf(stderr, "recv_packet: got %d symbols %d bytes %d offset\n", n, m, i);
+    return m;
 }
 
 void flush_packet(int fd) {

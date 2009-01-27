@@ -1,4 +1,4 @@
-/* $Id: recv_packets.c,v 1.3 2009-01-21 07:22:50 nick Exp $ */
+/* $Id: recv_packets.c,v 1.4 2009-01-27 23:59:18 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
     }
 
     int j, k;
-    unsigned char buffer[PACKET_LENGTH];
+    unsigned char buffer[PACKET_LENGTH] = {0};
     
     initialize_port(serial_fd, baud_rate);
     for (j=0; j<NUM_PACKETS; j++) {
@@ -64,11 +64,15 @@ int main(int argc, char **argv) {
 		printf(" TIMEOUT\n\tPacket %d ...", j);
 	}
         
-        for (k=0; k<PACKET_LENGTH; k++) {
-            fprintf(stderr,"%d %02X %02X\n", k, buffer[k], packet_data[j][k]);
-        }
         int bits = bit_compare(buffer, packet_data[j], PACKET_LENGTH);
         printf ("Bit Errors: %d\n", bits);
+        
+        if (bits && bits < 100) {
+            for (k=0; k<PACKET_LENGTH; k++) {
+                fprintf(stderr,"%d %02X %02X\n", k, buffer[k], packet_data[j][k]);
+            }
+        }
+        
         sleep(1);
     }
     return 0;

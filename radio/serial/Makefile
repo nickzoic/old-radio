@@ -1,14 +1,29 @@
-# $Id: Makefile,v 1.8 2009-01-27 21:55:52 nick Exp $
+# $Id: Makefile,v 1.9 2009-01-27 23:59:18 nick Exp $
 
 CFLAGS=-std=gnu99 -O2 -Wall
 
-all: sendrecv.o
+all: send_packets recv_packets
+
+
+test: test_symbols
+	./test_symbols
+   
+ 
+send_packets: send_packets.o sendrecv.o symbols.o
+
+
+recv_packets: recv_packets.o sendrecv.o symbols.o
+
+
+test_symbols: test_symbols.o symbols.o
+
 
 symbols.i: symbols.py
-	./symbols.py 3 3 3 8 55 AA DD > symbols.i
+	./symbols.py 3 3 3 8 55 AA FF DD > symbols.i
 
 symbols.o: symbols.c symbols.h symbols.i
 
+
 clean:
-	rm -rf *.o send_packets recv_packets test_ber
+	rm -rf *.o symbols.i test_symbols
     

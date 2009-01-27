@@ -1,12 +1,22 @@
-/* $Id: symbols.c,v 1.1 2009-01-27 21:55:52 nick Exp $ */
+/* $Id: symbols.c,v 1.2 2009-01-27 23:59:18 nick Exp $ */
+
+#include <stdio.h>
 
 #include "symbols.h"
 
 #include "symbols.i"
 
 #if SYMBOL_COUNT < 128
-#error Need 128 Symbols
+#error symbols.c needs >= 128 symbols!
 #endif
+
+#ifndef SYMBOL_RESERVED_1
+#error symbols.c needs 2 reserved symbols!
+#endif
+
+const int Symbol_Start = SYMBOL_RESERVED_0;
+const int Symbol_End = SYMBOL_RESERVED_1;
+const int Symbol_Sync = SYMBOL_RESERVED_2;
 
 #define BITMASK(b) ( (1 << (b)) - 1 )
 #define GETBITS(x,a,b) ( ((x) >> (a)) & BITMASK(b) )
@@ -37,9 +47,9 @@ int _b2s(unsigned char *bytes, int nbytes, unsigned char *symbols) {
 // XXX TOFIX: May buffer overrrun if symbols[] isn't big enough
 
 int bytes_to_symbols(unsigned char *bytes, int nbytes, unsigned char *symbols) {
-    nsym = 0;
-    for (int i = 0; i < nbytes; i += 8)
-        nsym += _b2s(bytes+i, (nbytes-i<8)?(nbytes-i):8, symbols+nsym)
+    int nsym = 0;
+    for (int i = 0; i < nbytes; i += 7)
+        nsym += _b2s(bytes+i, (nbytes-i<7)?(nbytes-i):7, symbols+nsym);
     return nsym;
 }
 
@@ -89,9 +99,12 @@ int _s2b(unsigned char *symbols, int nsym, unsigned char *bytes) {
 // unpack a whole string of symbols into bytes.
 // XXX TOFIX: May buffer overrrun if bytes[] isn't big enough
 
-int symbols_to_bytes(unsigned char *symbols, int nsym, unsigned char *bytes);
-    nbyt = 0;
-    for (int i = 0; i < nbytes; i += 7)
-        nsym += _b2s(symbols+i, (nbyt-i<7)?(nbyt-i):7, bytes+nbyt)
+int symbols_to_bytes(unsigned char *symbols, int nsym, unsigned char *bytes) {
+    int nbyt = 0;
+    for (int i = 0; i < nsym; i += 8) {
+        int x = _s2b(symbols+i, (nsym-i<8)?(nsym-i):8, bytes+nbyt);
+        nbyt += x;
+        if (x < 7) return nbyt;
+    }
     return nbyt;
 }
