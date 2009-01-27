@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# $Id: symbols.py,v 1.4 2009-01-21 10:38:00 nick Exp $
+# $Id: symbols.py,v 1.5 2009-01-27 21:55:52 nick Exp $
 import random
 import re
 import sys
@@ -38,7 +38,7 @@ def printheader(symbols):
         print "#define SYMBOL_RESERVED_%d (0x%02X)" % (n, r)
     print
     
-    print "unsigned char symbol_encode[SYMBOL_COUNT] = {",
+    print "unsigned char symbol_encode[%d] = {" % len(symbols),
     for n, s in enumerate(symbols):
         if not n % 8: print "\n\t",
         print "0x%02X," % ord(s),
