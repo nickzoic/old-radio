@@ -1,4 +1,4 @@
-/* $Id: sendrecv.c,v 1.10 2009-01-27 23:59:18 nick Exp $ */
+/* $Id: sendrecv.c,v 1.11 2009-01-28 04:56:53 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -110,7 +110,6 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length) {
 	    fprintf(stderr, "WARNING: recv_packet sync poll: %s\n", strerror(errno));
 	    return 0;
 	} else if (e == 0) {
-	    fprintf(stderr, "WARNING: recv_packet sync poll timeout\n");
 	    return 0;
 	}
     
@@ -140,22 +139,33 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length) {
 	    return n;
         } else {
             for (int i=n; i<n+e; i++) {
-                if (recv_buffer[i] == Symbol_End) stopped = 1;
+                if (recv_buffer[i] == Symbol_End) {
+                    stopped = 1;
+                    e = i-n;
+                    break;
+                }
             }
             n += e;
         }
     }
     if (!stopped) return 0;
     
-    // search for the start of the packet
-    int m = 0;
-    int i = 0;
-    do {
-        m = symbols_to_bytes(recv_buffer+i, n-i, data);
-        i++;
-    } while (m == 0 && i < 10);
+    // Find offset of first valid symbol
+    int i;
+    for (i=0; i<n; i++) {
+        if (symbol_valid(recv_buffer[i])) break;
+    }
     
-    fprintf(stderr, "recv_packet: got %d symbols %d bytes %d offset\n", n, m, i);
+    // Find number of invalid symbols
+    //e = 0;
+    //for (int j=i; j<n; j++) {
+    //    if (!symbol_valid(recv_buffer[j])) e++;
+    //}
+    
+    // Decode packet starting from first valid symbol
+    int m = symbols_to_bytes(recv_buffer+i, n-i, data);
+    
+    //fprintf(stderr, "recv_packet: got symbols=%d bytes=%d offset=%d invalid=%d\n", n, m, i, e);
     return m;
 }
 

@@ -1,18 +1,26 @@
-# $Id: Makefile,v 1.9 2009-01-27 23:59:18 nick Exp $
+# $Id: Makefile,v 1.10 2009-01-28 04:56:53 nick Exp $
 
 CFLAGS=-std=gnu99 -O2 -Wall
 
-all: send_packets recv_packets
+PROGS=send_packets recv_packets
+
+all: ${PROGS}
 
 
 test: test_symbols
 	./test_symbols
    
  
-send_packets: send_packets.o sendrecv.o symbols.o
+send_packets: send_packets.o sendrecv.o symbols.o sendrecv_packets.h
 
 
-recv_packets: recv_packets.o sendrecv.o symbols.o
+send_packets.o: send_packets.c sendrecv.h sendrecv_packets.h
+
+
+recv_packets: recv_packets.o sendrecv.o symbols.o sendrecv_packets.h
+
+
+recv_packets.o: recv_packets.c sendrecv.h sendrecv_packets.h
 
 
 test_symbols: test_symbols.o symbols.o
@@ -25,5 +33,5 @@ symbols.o: symbols.c symbols.h symbols.i
 
 
 clean:
-	rm -rf *.o symbols.i test_symbols
+	rm -rf *.o symbols.i test_symbols ${PROGS}
     

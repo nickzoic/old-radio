@@ -1,4 +1,4 @@
-/* $Id: recv_packets.c,v 1.4 2009-01-27 23:59:18 nick Exp $ */
+/* $Id: recv_packets.c,v 1.5 2009-01-28 04:56:53 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,20 +7,15 @@
 #include <errno.h>
 #include <string.h>
 #include <termios.h>
+#include <signal.h>
 
 #include "sendrecv.h"
 #include "sendrecv_packets.h"
 
-int bit_compare(unsigned char *a, unsigned char *b, unsigned int len) {
-    int i, r=0;
-    for (i=0; i<len; i++) {
-        unsigned char d = a[i] ^ b[i];
-        while (d) {
-            d &= d - 1;
-            r++;
-        }
-    }
-    return r;
+int Interrupted = 0;
+
+void handle_int(int x) {
+    Interrupted = 1;
 }
 
 int main(int argc, char **argv) {
@@ -52,29 +47,39 @@ int main(int argc, char **argv) {
         }
     }
 
-    int j, k;
-    unsigned char buffer[PACKET_LENGTH] = {0};
+    signal(SIGINT, handle_int);
+ 
+    unsigned char buffer[PACKET_LENGTH+1] = {0};
     
     initialize_port(serial_fd, baud_rate);
-    for (j=0; j<NUM_PACKETS; j++) {
-        printf ("\tPacket %d ...", j);
-	while(1) {
-        	int n = recv_packet(serial_fd, buffer, PACKET_LENGTH);
-		if (n>0) break;
-		printf(" TIMEOUT\n\tPacket %d ...", j);
-	}
-        
-        int bits = bit_compare(buffer, packet_data[j], PACKET_LENGTH);
-        printf ("Bit Errors: %d\n", bits);
-        
-        if (bits && bits < 100) {
-            for (k=0; k<PACKET_LENGTH; k++) {
-                fprintf(stderr,"%d %02X %02X\n", k, buffer[k], packet_data[j][k]);
+    
+    int packet_num = 0;
+    int valid_packets = 0;
+    
+    while(!Interrupted && packet_num < NUM_PACKETS + 1) {
+        printf ("Listening ...\n");
+        int n = recv_packet(serial_fd, buffer, PACKET_LENGTH);
+        if (n <= 0) {
+            printf("\tTIMEOUT\n");
+            packet_num++;
+        } else {
+            printf("\tGot %d bytes\n", n);
+            if (n == PACKET_LENGTH) {
+                for (int j=0; j<NUM_PACKETS; j++) {
+                    int e = 0;
+                    for (int k=0; k<PACKET_LENGTH; k++) {
+                        if (packet_data[j][k] == buffer[k]) e++;
+                    }
+                    if (e > PACKET_LENGTH/2) {
+                        printf("\t\tmatches packet %d %6.2f%%\n", j, e*100.0/PACKET_LENGTH);
+                        packet_num = j;
+                        valid_packets++;
+                    }
+                }
             }
         }
-        
-        sleep(1);
     }
-    return 0;
     
+    printf("VALID PACKETS: %d %6.2f%%\n", valid_packets, valid_packets*100.0/NUM_PACKETS);
+    return 0;    
 }

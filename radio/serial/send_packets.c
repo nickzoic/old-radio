@@ -1,4 +1,4 @@
-/* $Id: send_packets.c,v 1.4 2009-01-27 23:59:18 nick Exp $ */
+/* $Id: send_packets.c,v 1.5 2009-01-28 04:56:53 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    int serial_fd = open(argv[1], O_WRONLY);
+    int serial_fd = open(argv[1], O_WRONLY | O_SYNC);
     int baud_rate = (argc>2)?atoi(argv[2]):2400;
 
     if (serial_fd < 0) {
@@ -44,9 +44,9 @@ int main(int argc, char **argv) {
     
     initialize_port(serial_fd, baud_rate);
     for (j=0; j<NUM_PACKETS; j++) {
-        printf ("\tPacket %d\n", j);
+        printf ("Packet %d\n", j);
         send_packet(serial_fd, packet_data[j], PACKET_LENGTH);
-        sleep(5);
+        sleep(1);
     }
     return 0;
 }

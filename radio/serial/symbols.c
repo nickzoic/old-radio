@@ -1,4 +1,4 @@
-/* $Id: symbols.c,v 1.2 2009-01-27 23:59:18 nick Exp $ */
+/* $Id: symbols.c,v 1.3 2009-01-28 04:56:53 nick Exp $ */
 
 #include <stdio.h>
 
@@ -107,4 +107,8 @@ int symbols_to_bytes(unsigned char *symbols, int nsym, unsigned char *bytes) {
         if (x < 7) return nbyt;
     }
     return nbyt;
+}
+
+int symbol_valid(unsigned char symbol) {
+    return (symbol_decode[symbol]>=0);
 }
