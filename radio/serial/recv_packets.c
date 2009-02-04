@@ -1,4 +1,4 @@
-/* $Id: recv_packets.c,v 1.6 2009-01-28 05:30:34 nick Exp $ */
+/* $Id: recv_packets.c,v 1.7 2009-02-04 01:13:44 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,11 +19,6 @@ void handle_int(int x) {
 }
 
 int main(int argc, char **argv) {
-
-    if (argc<2) {
-        fprintf(stderr, "usage: %s <devname> [<baud rate> [<num_packets>]]\n", argv[0]);
-        exit(1);
-    }
 
     int serial_fd = open(argv[1], O_RDWR);
     int baud_rate = (argc>2)?atoi(argv[2]):9600;
@@ -59,7 +54,7 @@ int main(int argc, char **argv) {
     
     while(!Interrupted && packet_num < num_packets + 1) {
         printf ("Listening ...\n");
-        int n = recv_packet(serial_fd, buffer, PACKET_LENGTH);
+        int n = recv_packet(serial_fd, buffer, PACKET_LENGTH, 1000);
         if (n <= 0) {
             printf("\tTIMEOUT\n");
             if (packet_num) packet_num++;

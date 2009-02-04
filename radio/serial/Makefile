@@ -1,8 +1,8 @@
-# $Id: Makefile,v 1.10 2009-01-28 04:56:53 nick Exp $
+# $Id: Makefile,v 1.11 2009-02-04 01:13:44 nick Exp $
 
 CFLAGS=-std=gnu99 -O2 -Wall
 
-PROGS=send_packets recv_packets
+PROGS=send_packets recv_packets chatter
 
 all: ${PROGS}
 
@@ -10,15 +10,18 @@ all: ${PROGS}
 test: test_symbols
 	./test_symbols
    
+
+chatter: chatter.o sendrecv.o symbols.o
+
+chatter.o: chatter.c sendrecv.h
+
  
 send_packets: send_packets.o sendrecv.o symbols.o sendrecv_packets.h
-
 
 send_packets.o: send_packets.c sendrecv.h sendrecv_packets.h
 
 
 recv_packets: recv_packets.o sendrecv.o symbols.o sendrecv_packets.h
-
 
 recv_packets.o: recv_packets.c sendrecv.h sendrecv_packets.h
 

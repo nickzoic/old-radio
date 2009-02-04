@@ -1,10 +1,10 @@
-/* $Id: sendrecv.h,v 1.6 2009-01-22 01:07:42 nick Exp $ */
+/* $Id: sendrecv.h,v 1.7 2009-02-04 01:13:44 nick Exp $ */
 
 #include <termios.h>
 
 int initialize_port(int fd, int baud_rate);
 int send_packet(int fd, unsigned char *data, unsigned int data_length);
-int recv_packet(int fd, unsigned char *data, unsigned int data_length);
+int recv_packet(int fd, unsigned char *data, unsigned int data_length, unsigned int timeout);
 
 void flush_packet(int fd);
 
