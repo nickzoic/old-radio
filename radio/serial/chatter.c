@@ -1,4 +1,6 @@
-/* $Id: chatter.c,v 1.1 2009-02-04 01:13:44 nick Exp $ */
+/* $Id: chatter.c,v 1.2 2009-02-05 01:48:07 nick Exp $ */
+
+// Chattering with primitive CSMA/CA
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +39,6 @@ int main(int argc, char **argv) {
     
     while (!Interrupted) {
         unsigned int timeout = 200 + rand() % 800;
-        printf("Listen %d\n", timeout);
         int n = recv_packet(fd, buffer, sizeof(buffer)-1, timeout);
         if (n > 0) {
             buffer[n] = 0;
