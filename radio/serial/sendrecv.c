@@ -1,4 +1,4 @@
-/* $Id: sendrecv.c,v 1.14 2009-02-05 01:48:07 nick Exp $ */
+/* $Id: sendrecv.c,v 1.15 2009-02-05 01:48:18 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -113,7 +113,7 @@ int send_packet(int fd, unsigned char *data, unsigned int data_length) {
             }
         }
     }
-    flush_packet(fd);
+    // flush_packet(fd);
     
     return 1;
 }
@@ -197,7 +197,7 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length, unsigned 
     unsigned short int crc_calc = crc16(data, m-2);
     
     if (crc_recv != crc_calc) {
-        fprintf(stderr, "WARNING: CRC check failuer %04X %04X\n", crc_recv, crc_calc);
+        fprintf(stderr, "WARNING: CRC check failure %04X %04X\n", crc_recv, crc_calc);
         return 0;
     }
     return m-2;
@@ -212,7 +212,7 @@ void flush_packet(int fd) {
     }};
     
     while(1) {
-	e = poll(pollfds, 1, 1000);
+	e = poll(pollfds, 1, 100);
 	if (e == -1) {
 	    fprintf(stderr, "WARNING: flush_packet poll: %s\n", strerror(errno));
 	    return;
