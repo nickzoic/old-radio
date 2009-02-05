@@ -1,4 +1,4 @@
-/* $Id: chatter.c,v 1.4 2009-02-05 01:48:51 nick Exp $ */
+/* $Id: chatter.c,v 1.5 2009-02-05 01:49:11 nick Exp $ */
 
 // Chattering with primitive CSMA/CA
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
         struct timeval tv1, tv2;
         gettimeofday(&tv1, NULL);
         long int timeout = TIMEOUT;
-        printf("%03ld.%06ld Listen %ld\n", tv1.tv_sec % 1000, tv1.tv_usec, timeout);
+        //printf("%03ld.%06ld Listen %ld\n", tv1.tv_sec % 1000, tv1.tv_usec, timeout);
         do {
             
             
@@ -67,11 +67,11 @@ int main(int argc, char **argv) {
             long int elapsed = (tv2.tv_sec - tv1.tv_sec) * 1000L + (tv2.tv_usec - tv1.tv_usec) / 1000L;
             timeout = TIMEOUT - elapsed;
             if (n > 0 && timeout < HOLDOFFMAX) {
-                printf("%03ld.%06ld Holdoff %ld\n", tv2.tv_sec % 1000, tv2.tv_usec, timeout);
+                //printf("%03ld.%06ld Holdoff %ld\n", tv2.tv_sec % 1000, tv2.tv_usec, timeout);
                 long int holdoff = HOLDOFFMIN + (rand() % (HOLDOFFMAX-HOLDOFFMIN));
                 if (timeout < holdoff) timeout = holdoff;
             }
-            printf("%03ld.%06ld Listen2 %ld\n", tv2.tv_sec % 1000, tv2.tv_usec, timeout);
+            //printf("%03ld.%06ld Listen2 %ld\n", tv2.tv_sec % 1000, tv2.tv_usec, timeout);
         } while(!Interrupted && timeout > 0);
         
         

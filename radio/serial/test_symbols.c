@@ -1,4 +1,4 @@
-/* $Id: test_symbols.c,v 1.5 2009-02-05 01:48:51 nick Exp $ */
+/* $Id: test_symbols.c,v 1.6 2009-02-05 01:49:11 nick Exp $ */
 /* Test a ridiculously large number of byte strings of varying length
  * to make sure they round-trip properly through bytes_to_symbols and
  * symbols_to_bytes.  

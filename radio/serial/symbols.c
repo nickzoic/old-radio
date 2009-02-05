@@ -1,4 +1,4 @@
-/* $Id: symbols.c,v 1.6 2009-02-05 01:48:51 nick Exp $ */
+/* $Id: symbols.c,v 1.7 2009-02-05 01:49:11 nick Exp $ */
 
 #include <stdio.h>
 
