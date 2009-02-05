@@ -1,4 +1,4 @@
-/* $Id: chatter.c,v 1.3 2009-02-05 01:48:17 nick Exp $ */
+/* $Id: chatter.c,v 1.4 2009-02-05 01:48:51 nick Exp $ */
 
 // Chattering with primitive CSMA/CA
 
@@ -36,6 +36,8 @@ int main(int argc, char **argv) {
     char *device = (argc>1)?argv[1]:"/dev/ttyUSB0";
     int baud_rate = (argc>2)?atoi(argv[2]):9600;
     int identifier = (argc>3)?atoi(argv[3]):(int)getpid();
+ 
+    signal(SIGINT, handle_int);
     
     int fd = open(device, O_RDWR | O_SYNC);
     initialize_port(fd, baud_rate);
@@ -47,8 +49,9 @@ int main(int argc, char **argv) {
         struct timeval tv1, tv2;
         gettimeofday(&tv1, NULL);
         long int timeout = TIMEOUT;
+        printf("%03ld.%06ld Listen %ld\n", tv1.tv_sec % 1000, tv1.tv_usec, timeout);
         do {
-            printf("%03ld.%06ld Listen %ld\n", tv1.tv_sec % 1000, tv1.tv_usec, timeout);
+            
             
             int n = recv_packet(fd, buffer, sizeof(buffer)-3, timeout);
             
@@ -62,10 +65,13 @@ int main(int argc, char **argv) {
             
             gettimeofday(&tv2, NULL);
             long int elapsed = (tv2.tv_sec - tv1.tv_sec) * 1000L + (tv2.tv_usec - tv1.tv_usec) / 1000L;
-            timeout -= elapsed;
+            timeout = TIMEOUT - elapsed;
             if (n > 0 && timeout < HOLDOFFMAX) {
-                timeout = HOLDOFFMIN + (rand() % (HOLDOFFMAX-HOLDOFFMIN));
+                printf("%03ld.%06ld Holdoff %ld\n", tv2.tv_sec % 1000, tv2.tv_usec, timeout);
+                long int holdoff = HOLDOFFMIN + (rand() % (HOLDOFFMAX-HOLDOFFMIN));
+                if (timeout < holdoff) timeout = holdoff;
             }
+            printf("%03ld.%06ld Listen2 %ld\n", tv2.tv_sec % 1000, tv2.tv_usec, timeout);
         } while(!Interrupted && timeout > 0);
         
         
@@ -75,4 +81,6 @@ int main(int argc, char **argv) {
         send_packet(fd, buffer, n);
     
     }
+    
+    printf("Fin.\n");
 }

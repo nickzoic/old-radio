@@ -1,4 +1,4 @@
-/* $Id: sendrecv.h,v 1.10 2009-02-05 01:48:18 nick Exp $ */
+/* $Id: sendrecv.h,v 1.11 2009-02-05 01:48:51 nick Exp $ */
 
 #include <termios.h>
 

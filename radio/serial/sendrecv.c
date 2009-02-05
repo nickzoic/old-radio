@@ -1,4 +1,4 @@
-/* $Id: sendrecv.c,v 1.15 2009-02-05 01:48:18 nick Exp $ */
+/* $Id: sendrecv.c,v 1.16 2009-02-05 01:48:51 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
