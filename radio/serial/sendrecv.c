@@ -1,4 +1,4 @@
-/* $Id: sendrecv.c,v 1.12 2009-02-04 01:13:44 nick Exp $ */
+/* $Id: sendrecv.c,v 1.13 2009-02-05 01:47:39 nick Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -72,12 +72,7 @@ int initialize_port(int fd, int baud_rate) {
 int send_packet(int fd, unsigned char *data, unsigned int data_length) {
     // XXX TOFIX: Doesn't check for buffer overruns
     static unsigned char send_buffer[8192];
-    static unsigned char flush_buffer[64];
-    
-    struct pollfd pollfds[] = {{
-	fd, POLLIN|POLLOUT, 0    
-    }};
-    
+        
     memset(send_buffer, Symbol_Start, PREAMBLE_LEN);
     memset(send_buffer + PREAMBLE_LEN, Symbol_Sync, UARTSYNC_LEN);
     int nsym = bytes_to_symbols(data, data_length, send_buffer+PREAMBLE_LEN+UARTSYNC_LEN);
@@ -86,37 +81,20 @@ int send_packet(int fd, unsigned char *data, unsigned int data_length) {
     
     int n = 0;
     while (n < packet_length) {
-        int e = poll(pollfds, 1, 1000);
-        if (e == -1) {
-            fprintf(stderr, "WARNING: send_packet poll: %s\n", strerror(errno));
-	    return 0;
-        } else {
-            if (pollfds[0].revents & POLLIN) {
-                // While we're transmitting, our own receiver keeps copping a lot
-                // of random nonsense.
-                e = read(fd, flush_buffer, sizeof(flush_buffer));
-                if (e == -1) {
-                    fprintf(stderr, "WARNING: send_packet read: %s\n", strerror(errno));
-                }
-            }
-            if (pollfds[0].revents & POLLOUT) {
-                e = write(fd, send_buffer+n, packet_length - n);
-                if (e == -1) {
-                    fprintf(stderr, "WARNING: send_packet write: %s\n", strerror(errno));
-                } else {
+            int e = write(fd, send_buffer+n, packet_length - n);
+            if (e == -1) {
+                    fprintf(stderr, "WARNING: send_packet: %s\n", strerror(errno));
+            } else {
                     n += e;
-                }    
             }
-        }
     }
-    flush_packet(fd);
     
     return 1;
 }
 
 #define RECV_BUFFER_LEN (8192)
 
-int recv_packet(int fd, unsigned char *data, unsigned int data_length, unsigned int timeout) {
+int recv_packet(int fd, unsigned char *data, unsigned int data_length) {
     unsigned char c;
     int e;
     
@@ -127,7 +105,7 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length, unsigned 
     }};
     
     do {
-	e = poll(pollfds, 1, timeout);
+	e = poll(pollfds, 1, 1000);
 	if (e == -1) {
 	    fprintf(stderr, "WARNING: recv_packet sync poll: %s\n", strerror(errno));
 	    return 0;
@@ -211,7 +189,7 @@ void flush_packet(int fd) {
     
         e = read(fd, &c, 1);
 	if (e == -1) {
-            fprintf(stderr, "WARNING: flush_packet read: %s\n", strerror(errno));
+            fprintf(stderr, "WARNING: flush_packet ead: %s\n", strerror(errno));
 	    return;
         } 
     };
