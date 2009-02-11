@@ -1,4 +1,4 @@
-// $Id: spy.c,v 1.1 2009-02-11 08:27:21 nick Exp $
+// $Id: spy.c,v 1.2 2009-02-11 22:29:32 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,6 +9,8 @@
 #include <termios.h>
 #include <signal.h>
 #include <time.h>
+
+#include <sys/time.h>
 
 #include "sendrecv.h"
 #include "symbols.h"
@@ -58,4 +60,4 @@ int main(int argc, char **argv) {
         symbols[nsym++] = x;
     }
 }
-    
+

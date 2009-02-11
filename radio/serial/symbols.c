@@ -1,4 +1,4 @@
-/* $Id: symbols.c,v 1.8 2009-02-11 00:22:53 nick Exp $ */
+/* $Id: symbols.c,v 1.9 2009-02-11 22:29:32 nick Exp $ */
 
 #include <stdio.h>
 
@@ -116,3 +116,4 @@ int symbol_valid(unsigned char symbol) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+

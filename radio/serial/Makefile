@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.21 2009-02-11 08:27:21 nick Exp $
+# $Id: Makefile,v 1.22 2009-02-11 22:29:32 nick Exp $
 
 CFLAGS=-std=gnu99 -O2 -Wall
 LDLIBS=-lpthread
@@ -50,7 +50,7 @@ recv_packets.o: recv_packets.c sendrecv.h sendrecv_packets.h
 test_symbols: test_symbols.o symbols.o
 
 symbols.i: symbols.py
-	./symbols.py 3 3 3 8 55 AA FF DD > symbols.i
+	./symbols.py 128 3 5 4 8 55 AA FF > symbols.i
 
 symbols.o: symbols.c symbols.h symbols.i
 
