@@ -1,11 +1,15 @@
-/* $Id: sendrecv.c,v 1.17 2009-02-05 01:49:11 nick Exp $ */
+/* $Id: sendrecv.c,v 1.18 2009-02-11 00:22:53 nick Exp $ */
+
+// This handles the lowest level of the protocol stack: encoding bytes into
+// symbols and pushing them out the serial port.  It doesn't do much in the
+// way of consistency checking.
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-
+#include <assert.h>
 #include <poll.h>
 
 #include <termios.h>
@@ -19,6 +23,11 @@
 #define PREAMBLE_LEN (5)
 #define UARTSYNC_LEN (2)
 #define EPILOGUE_LEN (5)
+
+#define MAX_PACKET_BYTES (8192)
+#define MAX_PACKET_SYMBOLS ((MAX_PACKET_BYTES*8/7)+PREAMBLE_LEN+UARTSYNC_LEN+EPILOGUE_LEN+1)
+
+////////////////////////////////////////////////////////////////////////////////
 
 int baud_table[][2] = {
     { B38400, 38400 },
@@ -69,36 +78,36 @@ int initialize_port(int fd, int baud_rate) {
     return 1;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 int send_packet(int fd, unsigned char *data, unsigned int data_length) {
     // DOESN'T HANDLE BUFFER OVER-RUNS.
-    // WRITES CRC TO data[data_length] and data[data_length+1]
-    // MANY OTHER DESIGN FLAWS.
-    static unsigned char send_buffer[8192];
+    assert(data_length <= MAX_PACKET_BYTES);
+    static unsigned char send_buffer[MAX_PACKET_SYMBOLS];
     
-    unsigned short int crc = crc16(data, data_length);
-    data[data_length] = crc & 0xFF;
-    data[data_length+1] = crc >> 8;
-    
+    // Create packet w/ Preamble, Sync, Data, Epilogue
     memset(send_buffer, Symbol_Start, PREAMBLE_LEN);
     memset(send_buffer + PREAMBLE_LEN, Symbol_Sync, UARTSYNC_LEN);
-    int nsym = bytes_to_symbols(data, data_length+2, send_buffer+PREAMBLE_LEN+UARTSYNC_LEN);
-    
+    int nsym = bytes_to_symbols(data, data_length, send_buffer+PREAMBLE_LEN+UARTSYNC_LEN);
     memset(send_buffer + PREAMBLE_LEN + UARTSYNC_LEN + nsym, Symbol_End, EPILOGUE_LEN);
-    unsigned int packet_length = PREAMBLE_LEN + UARTSYNC_LEN + nsym + EPILOGUE_LEN;
     
+    // Send packet.
+    unsigned int packet_length = PREAMBLE_LEN + UARTSYNC_LEN + nsym + EPILOGUE_LEN;
     int n = 0;
     while (n < packet_length) {
         int e = write(fd, send_buffer+n, packet_length - n);
         if (e == -1) {
             fprintf(stderr, "WARNING: send_packet write: %s\n", strerror(errno));
-        } else {
-            n += e;
-        }    
+            return 0;
+        }
+        n += e;    
     }
     return 1;
 }
 
-#define RECV_BUFFER_LEN (8192)
+////////////////////////////////////////////////////////////////////////////////
+
+#define RECV_BUFFER_LEN (MAX_PACKET_SYMBOLS)
 
 int recv_packet(int fd, unsigned char *data, unsigned int data_length, unsigned int timeout) {
     unsigned char c;
@@ -110,12 +119,12 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length, unsigned 
 	fd, POLLIN, 0    
     }};
     
+    // read symbols until we find a Symbol_Start
+    
     do {
 	e = poll(pollfds, 1, timeout);
-	if (e == -1) {
-	    fprintf(stderr, "WARNING: recv_packet sync poll: %s\n", strerror(errno));
-	    return 0;
-	} else if (e == 0) {
+	if (e <= 0) {
+	    if (e == -1 ) fprintf(stderr, "WARNING: recv_packet sync poll: %s\n", strerror(errno));
 	    return 0;
 	}
     
@@ -126,35 +135,37 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length, unsigned 
         } 
     } while (c != Symbol_Start);
     
+    // read symbols until we find a Symbol_End or we run out of buffer.
+    
     int n = 0;
     int stopped = 0;
     while (!stopped && n < RECV_BUFFER_LEN) {
 	
-	e = poll(pollfds, 1, 100);
-	if (e == -1) {
-	    fprintf(stderr, "WARNING: recv_packet read poll: %s\n", strerror(errno));
-	    return 0;
-	} else if (e == 0) {
-	    //fprintf(stderr, "WARNING: recv_packet read poll timeout\n");
+        e = poll(pollfds, 1, 100);
+	if (e <= 0) {
+	    if (e == -1) fprintf(stderr, "WARNING: recv_packet read poll: %s\n", strerror(errno));
 	    return 0;
 	}
-    
+        
         e = read(fd, recv_buffer+n, RECV_BUFFER_LEN-n);
 	if (e == -1) {
             fprintf(stderr, "WARNING: recv_packet read read: %s\n", strerror(errno));
 	    return 0;
-        } else {
-            for (int i=n; i<n+e; i++) {
-                if (recv_buffer[i] == Symbol_End) {
-                    stopped = 1;
-                    e = i-n;
-                    break;
-                }
-            }
-            n += e;
         }
+        
+        for (int i=n; i<n+e; i++) {
+            if (recv_buffer[i] == Symbol_End) {
+                stopped = 1;
+                e = i-n;
+                break;
+            }
+        }
+        n += e;
     }
-    if (!stopped) return 0;
+    if (!stopped) {
+        fprintf(stderr, "WARNING: recv_packet overrun\n");
+        return 0;
+    }
     
     // Find offset of first valid symbol
     int i;
@@ -162,26 +173,12 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length, unsigned 
         if (symbol_valid(recv_buffer[i])) break;
     }
     
-    // Find number of invalid symbols
-    //e = 0;
-    //for (int j=i; j<n; j++) {
-    //    if (!symbol_valid(recv_buffer[j])) e++;
-    //}
-    
     // Decode packet starting from first valid symbol
-    int m = symbols_to_bytes(recv_buffer+i, n-i, data);
-    
-    if (m<2) return 0;
-    
-    unsigned short int crc_recv = data[m-2] + ((unsigned short int)data[m-1] << 8);
-    unsigned short int crc_calc = crc16(data, m-2);
-    
-    if (crc_recv != crc_calc) {
-        fprintf(stderr, "WARNING: CRC check failure %04X %04X\n", crc_recv, crc_calc);
-        return 0;
-    }
-    return m-2;
+    int m = symbols_to_bytes(recv_buffer+i, n-i, data);    
+    return m;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 void flush_packet(int fd) {
     int e;

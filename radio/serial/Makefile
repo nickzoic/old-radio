@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.16 2009-02-05 01:49:11 nick Exp $
+# $Id: Makefile,v 1.17 2009-02-11 00:22:53 nick Exp $
 
 CFLAGS=-std=gnu99 -O2 -Wall
 LDLIBS=-lpthread
@@ -12,7 +12,7 @@ test: test_symbols
 	./test_symbols
    
 
-chatter: chatter.o sendrecv.o symbols.o
+chatter: chatter.o sendrecv.o symbols.o crc.o
 
 chatter.o: chatter.c sendrecv.h
 
@@ -39,6 +39,9 @@ symbols.i: symbols.py
 	./symbols.py 3 3 3 8 55 AA FF DD > symbols.i
 
 symbols.o: symbols.c symbols.h symbols.i
+
+
+crc.o: crc.c crc.h
 
 
 clean:

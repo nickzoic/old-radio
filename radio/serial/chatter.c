@@ -1,4 +1,6 @@
-/* $Id: chatter.c,v 1.5 2009-02-05 01:49:11 nick Exp $ */
+/* $Id: chatter.c,v 1.6 2009-02-11 00:22:53 nick Exp $ */
+
+// Chattering with primitive CSMA/CA
 
 // Chattering with primitive CSMA/CA
 
@@ -16,6 +18,7 @@
 #include <sys/types.h>
 
 #include "sendrecv.h"
+#include "crc.h"
 
 int Interrupted = 0;
 
@@ -60,7 +63,12 @@ int main(int argc, char **argv) {
                 buffer[n] = 0;
                 
                 gettimeofday(&tv2, NULL);
-                printf("%03ld.%06ld Got [%s]\n", tv2.tv_sec % 1000, tv2.tv_usec, buffer);
+                if (crc16_check(buffer, n)) {
+                    buffer[n-2] = 0;
+                    printf("%03ld.%06ld Got [%s]\n", tv2.tv_sec % 1000, tv2.tv_usec, buffer);
+                } else {
+                    printf("%03ld.%06ld Got BAD CRC\n", tv2.tv_sec % 1000, tv2.tv_usec);
+                }
             }
             
             gettimeofday(&tv2, NULL);
@@ -77,8 +85,10 @@ int main(int argc, char **argv) {
         
         count++;
         int n = sprintf((char *)buffer, "Hello %d from %d", count, identifier);
+        
         printf("%03ld.%06ld Say [%s]\n", tv2.tv_sec % 1000, tv2.tv_usec, buffer);
-        send_packet(fd, buffer, n);
+        crc16_set(buffer, n+2);
+        send_packet(fd, buffer, n+2);
     
     }
     
