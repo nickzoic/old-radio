@@ -1,4 +1,4 @@
-// $Id: spy.c,v 1.3 2009-02-11 22:45:54 nick Exp $
+// $Id: spy.c,v 1.4 2009-02-11 23:21:42 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,12 +18,17 @@
 
 int main(int argc, char **argv) {
 
+    if (argc<2) {
+	fprintf(stderr, "usage: %s <device> [<baud_rate>]\n", argv[0]);
+	exit(1);
+    }
+
     int fd = open(argv[1], O_RDWR);
     int baud_rate = (argc>2)?atoi(argv[2]):9600;
     
     if (fd < 0) {
-        fprintf(stderr, "couldn't open %s: %s", argv[1], strerror(errno));
-        exit(1);
+        fprintf(stderr, "couldn't open %s: %s\n", argv[1], strerror(errno));
+        exit(2);
     }
     
     initialize_port(fd, baud_rate);

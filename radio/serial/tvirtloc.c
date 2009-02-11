@@ -1,4 +1,4 @@
-// $Id: tvirtloc.c,v 1.1 2009-02-11 08:28:06 nick Exp $
+// $Id: tvirtloc.c,v 1.2 2009-02-11 23:21:42 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,6 +76,11 @@ int main(int argc, char **argv) {
     char *device = (argc>1)?argv[1]:"/dev/ttyUSB0";
     int baud_rate = (argc>2)?atoi(argv[2]):9600;
     int identifier = (argc>3)?atoi(argv[3]):(int)getpid();
+
+    // seed the PRNG from some randomish stuff ...
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    srand(tv.tv_sec * tv.tv_usec * getpid());
     
     beacon_init(identifier);
     
