@@ -1,6 +1,4 @@
-/* $Id: chatter.c,v 1.7 2009-02-11 00:55:10 nick Exp $ */
-
-// Chattering with primitive CSMA/CA
+/* $Id: chatter.c,v 1.8 2009-02-11 06:36:38 nick Exp $ */
 
 // Chattering with primitive CSMA/CA
 
