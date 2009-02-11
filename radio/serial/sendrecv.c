@@ -1,4 +1,4 @@
-/* $Id: sendrecv.c,v 1.18 2009-02-11 00:22:53 nick Exp $ */
+/* $Id: sendrecv.c,v 1.19 2009-02-11 00:55:10 nick Exp $ */
 
 // This handles the lowest level of the protocol stack: encoding bytes into
 // symbols and pushing them out the serial port.  It doesn't do much in the
@@ -107,19 +107,16 @@ int send_packet(int fd, unsigned char *data, unsigned int data_length) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define RECV_BUFFER_LEN (MAX_PACKET_SYMBOLS)
+int wait_packet(int fd, unsigned int timeout) {
 
-int recv_packet(int fd, unsigned char *data, unsigned int data_length, unsigned int timeout) {
-    unsigned char c;
+   unsigned char c;
     int e;
-    
-    static unsigned char recv_buffer[RECV_BUFFER_LEN];
     
     struct pollfd pollfds[] = {{
 	fd, POLLIN, 0    
     }};
     
-    // read symbols until we find a Symbol_Start
+    // read symbols until we find a Symbol_Start or we timeout.
     
     do {
 	e = poll(pollfds, 1, timeout);
@@ -135,13 +132,26 @@ int recv_packet(int fd, unsigned char *data, unsigned int data_length, unsigned 
         } 
     } while (c != Symbol_Start);
     
+    return 1;
+}
+
+#define RECV_BUFFER_LEN (MAX_PACKET_SYMBOLS)
+
+int recv_packet(int fd, unsigned char *data, unsigned int data_length, unsigned int timeout) {
+
     // read symbols until we find a Symbol_End or we run out of buffer.
+ 
+    static unsigned char recv_buffer[RECV_BUFFER_LEN];
+    
+    struct pollfd pollfds[] = {{
+	fd, POLLIN, 0    
+    }};
     
     int n = 0;
     int stopped = 0;
     while (!stopped && n < RECV_BUFFER_LEN) {
 	
-        e = poll(pollfds, 1, 100);
+        int e = poll(pollfds, 1, timeout);
 	if (e <= 0) {
 	    if (e == -1) fprintf(stderr, "WARNING: recv_packet read poll: %s\n", strerror(errno));
 	    return 0;

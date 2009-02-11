@@ -1,9 +1,9 @@
-# $Id: Makefile,v 1.17 2009-02-11 00:22:53 nick Exp $
+# $Id: Makefile,v 1.18 2009-02-11 00:55:10 nick Exp $
 
 CFLAGS=-std=gnu99 -O2 -Wall
 LDLIBS=-lpthread
 
-PROGS=send_packets recv_packets chatter
+PROGS=send_packets recv_packets chatter tchatter
 
 all: ${PROGS}
 
@@ -17,7 +17,7 @@ chatter: chatter.o sendrecv.o symbols.o crc.o
 chatter.o: chatter.c sendrecv.h
 
 
-tchatter: tchatter.o sendrecv.o symbols.o
+tchatter: tchatter.o sendrecv.o symbols.o crc.o
 
 tchatter.o: tchatter.c sendrecv.h
 

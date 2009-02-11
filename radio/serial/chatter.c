@@ -1,4 +1,4 @@
-/* $Id: chatter.c,v 1.6 2009-02-11 00:22:53 nick Exp $ */
+/* $Id: chatter.c,v 1.7 2009-02-11 00:55:10 nick Exp $ */
 
 // Chattering with primitive CSMA/CA
 
@@ -54,20 +54,21 @@ int main(int argc, char **argv) {
         long int timeout = TIMEOUT;
         //printf("%03ld.%06ld Listen %ld\n", tv1.tv_sec % 1000, tv1.tv_usec, timeout);
         do {
+            int n = 0;
+            if (wait_packet(fd, timeout)) {
+                n = recv_packet(fd, buffer, sizeof(buffer)-3, timeout);
             
-            
-            int n = recv_packet(fd, buffer, sizeof(buffer)-3, timeout);
-            
-            if (n > 0) {
-                // do something!
-                buffer[n] = 0;
-                
-                gettimeofday(&tv2, NULL);
-                if (crc16_check(buffer, n)) {
-                    buffer[n-2] = 0;
-                    printf("%03ld.%06ld Got [%s]\n", tv2.tv_sec % 1000, tv2.tv_usec, buffer);
-                } else {
-                    printf("%03ld.%06ld Got BAD CRC\n", tv2.tv_sec % 1000, tv2.tv_usec);
+                if (n > 0) {
+                    // do something!
+                    buffer[n] = 0;
+                    
+                    gettimeofday(&tv2, NULL);
+                    if (crc16_check(buffer, n)) {
+                        buffer[n-2] = 0;
+                        printf("%03ld.%06ld %d Got [%s]\n", tv2.tv_sec % 1000, tv2.tv_usec, identifier, buffer);
+                    } else {
+                        printf("%03ld.%06ld %d Got BAD CRC\n", tv2.tv_sec % 1000, tv2.tv_usec, identifier);
+                    }
                 }
             }
             
@@ -86,7 +87,7 @@ int main(int argc, char **argv) {
         count++;
         int n = sprintf((char *)buffer, "Hello %d from %d", count, identifier);
         
-        printf("%03ld.%06ld Say [%s]\n", tv2.tv_sec % 1000, tv2.tv_usec, buffer);
+        printf("%03ld.%06ld %d Say [%s]\n", tv2.tv_sec % 1000, tv2.tv_usec, identifier, buffer);
         crc16_set(buffer, n+2);
         send_packet(fd, buffer, n+2);
     

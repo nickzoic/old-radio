@@ -1,4 +1,4 @@
-// $Id: crc.c,v 1.1 2009-02-11 00:22:53 nick Exp $
+// $Id: crc.c,v 1.2 2009-02-11 00:55:10 nick Exp $
 
 // CRC algorithm as cargo-culted from pycrc.py
 // At least approximately a 16-bit wide CCITT CRC.
@@ -58,7 +58,7 @@ void crc16_set(unsigned char *bytes, unsigned int nbyt) {
 }
 
 int crc16_check(unsigned char *bytes, unsigned int nbyt) {
-        assert(nbyt >= 2);
+        if (nbyt < 2) return 0;
         unsigned short int crc1 = crc16(bytes, nbyt-2);
         unsigned short int crc2 = bytes[nbyt-2] + (bytes[nbyt-1] << 8);
         return (crc1 == crc2);
