@@ -1,4 +1,4 @@
-// $Id: beacon.h,v 1.1 2009-02-11 06:36:38 nick Exp $
+// $Id: beacon.h,v 1.2 2009-02-11 07:29:34 nick Exp $
 
 #define VLOC_DIM (3)
 #define MAXNEIGH (20)
@@ -12,7 +12,7 @@ typedef loc_t vloc_t[VLOC_DIM];
 
 typedef struct {
     nodeid_t id;
-    int stratum;
+    unsigned char stratum;
     vloc_t vloc;
 } neighbour_t;
 

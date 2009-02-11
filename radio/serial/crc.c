@@ -1,7 +1,9 @@
-// $Id: crc.c,v 1.2 2009-02-11 00:55:10 nick Exp $
+// $Id: crc.c,v 1.3 2009-02-11 07:29:33 nick Exp $
 
-// CRC algorithm as cargo-culted from pycrc.py
-// At least approximately a 16-bit wide CCITT CRC.
+// CRC algorithm as cargo-culted from:
+//     pycrc.py --model ccitt --generate c --algorithm table-driven
+// See also:
+//     http://www.tty1.net/pycrc/
 
 #include <assert.h>
 

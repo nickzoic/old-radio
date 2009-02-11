@@ -1,4 +1,4 @@
-// $Id: beacon.c,v 1.1 2009-02-11 06:36:38 nick Exp $
+// $Id: beacon.c,v 1.2 2009-02-11 07:29:34 nick Exp $
 
 #include <stdio.h>
 #include <string.h>
@@ -29,7 +29,7 @@ void beacon_recv(unsigned char *buffer, int length) {
     
     // If our id isn't in the packet, maybe we can't be heard by this node
     for (i=1; i<nbuff; i++) {
-        if (buff[i].id == Identifier) break;
+        if (buff[i].id == Identifier && (buff[i].stratum == 1 || buff[i].stratum == STRAT_INF)) break;
     }
     if (i == nbuff) {
         // our id wasn't found

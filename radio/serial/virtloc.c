@@ -1,6 +1,4 @@
-/* $Id: virtloc.c */
-
-// Chattering with primitive CSMA/CA
+// $Id: virtloc.c,v 1.2 2009-02-11 07:29:34 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +23,7 @@ void handle_int(int x) {
     Interrupted = 1;
 }
 
-#define TIMEOUT (1500)
+#define TIMEOUT (2500)
 #define HOLDOFFMAX (1000)
 #define HOLDOFFMIN (200)
 
@@ -55,14 +53,13 @@ int main(int argc, char **argv) {
         do {
             int n = 0;
             if (wait_packet(fd, timeout)) {
-                n = recv_packet(fd, buffer, sizeof(buffer), timeout);
+                n = recv_packet(fd, buffer, sizeof(buffer), 100);
             
                 if (n > 0) {
-                    gettimeofday(&tv2, NULL);
-                    if (crc16_check(buffer, n)) {
-                        if (buffer[0] == 0x01) {
-                            beacon_recv(buffer+1, n-3);
-                        }
+                    if (buffer[0] == 0x01 && crc16_check(buffer, n)) {
+                        beacon_recv(buffer+1, n-3);
+                    } else {
+                        fprintf(stderr, "BAD PACKET\n");    
                     }
                 }
             }
