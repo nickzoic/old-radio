@@ -1,4 +1,4 @@
-// $Id: spy.c,v 1.2 2009-02-11 22:29:32 nick Exp $
+// $Id: spy.c,v 1.3 2009-02-11 22:45:54 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,6 +9,7 @@
 #include <termios.h>
 #include <signal.h>
 #include <time.h>
+#include <ctype.h>
 
 #include <sys/time.h>
 
@@ -42,7 +43,7 @@ int main(int argc, char **argv) {
             struct timeval tv;
             gettimeofday(&tv, NULL);
             
-            printf("%010ld.%06ld>> ", tv.tv_sec, tv.tv_usec);
+            printf("%03d.%03d > ", (int)(tv.tv_sec % 1000), (int)(tv.tv_usec / 1000));
             for (int i=0; i<nsym; i++) {
                 printf("%02X ", symbols[i]);
             }
@@ -52,6 +53,10 @@ int main(int argc, char **argv) {
                 for (int i=0; i<m; i++) {
                     printf("%02X ", bytes[i]);
                 }
+		printf("%*s| ", (7-m)*3, "");
+		for (int i=0; i<m; i++) {
+		    printf("%c", isprint(bytes[i])?bytes[i]:'.');
+		}
             }
             printf ("\n");
             nsym = 0;
