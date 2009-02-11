@@ -1,4 +1,4 @@
-/* $Id: test_symbols.c,v 1.6 2009-02-05 01:49:11 nick Exp $ */
+/* $Id: test_symbols.c,v 1.7 2009-02-11 01:10:20 nick Exp $ */
 /* Test a ridiculously large number of byte strings of varying length
  * to make sure they round-trip properly through bytes_to_symbols and
  * symbols_to_bytes.  
@@ -84,9 +84,7 @@ int main(int argc, char **argv) {
     }
     printf("\nSuccess\n");
     
-    printf("Checking CRC16(\"123456789\") == 0x29B1\n");
-    unsigned short int crc = crc16("123456789", 9);
-    printf("=> %04X\n%s\n", crc, (crc == 0x29B1)?"Success":"Failure");
+    
     
     return 0;
 }
