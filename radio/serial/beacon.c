@@ -1,4 +1,4 @@
-// $Id: beacon.c,v 1.2 2009-02-11 07:29:34 nick Exp $
+// $Id: beacon.c,v 1.3 2009-02-11 08:27:21 nick Exp $
 
 #include <stdio.h>
 #include <string.h>
@@ -32,7 +32,7 @@ void beacon_recv(unsigned char *buffer, int length) {
         if (buff[i].id == Identifier && (buff[i].stratum == 1 || buff[i].stratum == STRAT_INF)) break;
     }
     if (i == nbuff) {
-        // our id wasn't found
+        // our id wasn't found ... truncate the packet.
         nbuff = 1;
         buff[0].stratum = STRAT_INF;
     }
@@ -48,7 +48,7 @@ void beacon_recv(unsigned char *buffer, int length) {
             if (Neighbours[j].id == buff[i].id) break;
         }
         assert (j < MAXNEIGH);
-        if (j == Nneigh || Neighbours[j].stratum >= buff[i].stratum + 1) {
+        if (j == Nneigh || Neighbours[j].stratum > buff[i].stratum) {
             if (j == Nneigh) Nneigh++;
             memcpy(Neighbours+j, buff+i, sizeof(neighbour_t));
             if (Neighbours[j].stratum < STRAT_INF) Neighbours[j].stratum ++;
