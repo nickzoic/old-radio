@@ -1,10 +1,12 @@
-// $Id: beacon.c,v 1.6 2009-03-04 07:45:13 nick Exp $
+// $Id: beacon.c,v 1.7 2009-03-04 08:56:16 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <time.h>
+
+#include <math.h>
 
 #include "beacon.h"
 
@@ -98,10 +100,62 @@ int beacon_prepare(unsigned char *buffer, int length) {
     return j * sizeof(beacon_t);
 }
 
-void beacon_cull() {
+
+unsigned long calc_energy(vloc_t vloc) {
+    unsigned long ener = 0;
+    for (int i=1; i<Nneigh; i++) {
+	
+	if (!Neighbours[i].state) continue;
+	strat_t stratum = Neighbours[i].stratum;
+	if (!stratum || stratum == STRAT_INF) continue;
+	
+	unsigned long dist2 = 0;
+	for (int j=0; j<VLOC_DIM; j++) {
+	    long dd = Neighbours[i].vloc[j] - vloc[j];
+	    dist2 += dd * dd;
+	}
+	
+	if (stratum == 1) {
+	    ener += K_ATTRACT * dist2;
+	} else if (stratum <= MAXSTRAT) {
+	    ener += K_REPEL / (sqrt(dist2) + 1);
+	}
+    }
+    return ener;
+}
+
+void beacon_recalc() {
     time_t stamp_timeout = time(NULL) - BEACON_TIMEOUT;
     
-    for (int i=0; i<Nneigh; i++)
-	if (Neighbours[i].stratum != 0 && Neighbours[i].stamp < stamp_timeout)
+    for (int i=1; i<Nneigh; i++)
+	if (Neighbours[i].stamp < stamp_timeout)
 	    Neighbours[i].state = 0;
+    
+    unsigned long curenergy = calc_energy(Neighbours[0].vloc);
+    
+    vloc_t oldvloc;
+    for (int k=0; k<VLOC_DIM; k++) oldvloc[k] = Neighbours[0].vloc[k];
+    unsigned long oldenergy = curenergy;
+    
+    for (int i=0; i<100; i++) {
+	vloc_t newvloc;
+	for (int k=0; k<VLOC_DIM; k++) newvloc[k] = oldvloc[k] + (rand() % 3) - 1;
+	
+	unsigned long newenergy = calc_energy(newvloc);
+	if (newenergy <= oldenergy) {
+	    for (int k=0; k<VLOC_DIM; k++) oldvloc[k] = newvloc[k];
+	    oldenergy = newenergy;
+	}
+    }
+    if (oldenergy < curenergy) {
+	for (int k=0; k<VLOC_DIM; k++) Neighbours[0].vloc[k] = oldvloc[k];
+    }
+    
+    printf ("RECALC: 0 (%5d %5d %5d) { %ld -> %ld }\n", Neighbours[0].vloc[0], Neighbours[0].vloc[1], Neighbours[0].vloc[2], curenergy, oldenergy);
+    for (int i=1; i<Nneigh; i++) {
+	if (!Neighbours[i].state || Neighbours[i].stratum == STRAT_INF) continue;
+	printf ("%6d: %d (%5d %5d %5d) (%5d %5d %5d)\n", Neighbours[i].id, Neighbours[i].stratum,
+		Neighbours[i].vloc[0], Neighbours[i].vloc[1], Neighbours[i].vloc[2],
+		Neighbours[i].vloc[0] - Neighbours[0].vloc[0], Neighbours[i].vloc[1] - Neighbours[0].vloc[1], Neighbours[i].vloc[2] - Neighbours[0].vloc[2]);
+    }
 }

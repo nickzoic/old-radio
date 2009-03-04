@@ -1,4 +1,4 @@
-// $Id: virtloc.c,v 1.4 2009-03-04 07:45:13 nick Exp $
+// $Id: virtloc.c,v 1.5 2009-03-04 08:56:16 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,12 +60,8 @@ int main(int argc, char **argv) {
             if (wait_packet(fd, timeout)) {
                 n = recv_packet(fd, buffer, sizeof(buffer), 100);
             
-                if (n > 0) {
-                    if (buffer[0] == 0x01 && crc16_check(buffer, n)) {
-                        beacon_recv(buffer+1, n-3);
-                    } else {
-                        fprintf(stderr, "BAD PACKET\n");    
-                    }
+                if (n > 0 && buffer[0] == 0x01 && crc16_check(buffer, n)) {
+                    beacon_recv(buffer+1, n-3);
                 }
             }
             
@@ -78,7 +74,7 @@ int main(int argc, char **argv) {
             }
         } while(!Interrupted && timeout > 0);
         
-        beacon_cull();
+        beacon_recalc();
         
         buffer[0] = 0x01;
         int n = beacon_prepare(buffer+1, sizeof(buffer)-1);        

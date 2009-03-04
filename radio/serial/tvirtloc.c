@@ -1,4 +1,4 @@
-// $Id: tvirtloc.c,v 1.3 2009-03-04 07:45:13 nick Exp $
+// $Id: tvirtloc.c,v 1.4 2009-03-04 08:56:16 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,7 +35,7 @@ void *writer(void *x) {
     while (1) {
     
         pthread_mutex_lock(&beacon_mutex);        
-        beacon_cull();
+        beacon_recalc();
         int n = beacon_prepare(buffer+1, sizeof(buffer)-1);
         pthread_mutex_unlock(&beacon_mutex);
         

@@ -1,10 +1,13 @@
-// $Id: beacon.h,v 1.4 2009-03-04 07:45:13 nick Exp $
+// $Id: beacon.h,v 1.5 2009-03-04 08:56:16 nick Exp $
 
 #define VLOC_DIM (3)
 #define MAXNEIGH (20)
 #define MAXSTRAT (5)
 #define STRAT_INF (255)
-#define BEACON_TIMEOUT (3)
+#define BEACON_TIMEOUT (60)
+
+#define K_REPEL (8000000ULL)
+#define K_ATTRACT (1ULL)
 
 typedef u_int16_t nodeid_t;
 typedef int32_t loc_t;
@@ -33,3 +36,5 @@ void beacon_init(nodeid_t identifier);
 void beacon_recv(unsigned char *buffer, int length);
 
 int beacon_prepare(unsigned char *buffer, int length);
+
+void beacon_recalc();
