@@ -1,9 +1,10 @@
-// $Id: beacon.h,v 1.3 2009-03-04 07:14:40 nick Exp $
+// $Id: beacon.h,v 1.4 2009-03-04 07:45:13 nick Exp $
 
 #define VLOC_DIM (3)
 #define MAXNEIGH (20)
 #define MAXSTRAT (5)
 #define STRAT_INF (255)
+#define BEACON_TIMEOUT (3)
 
 typedef u_int16_t nodeid_t;
 typedef int32_t loc_t;
@@ -17,10 +18,6 @@ struct beacon_s {
     vloc_t vloc;
 } __attribute__((__packed__));
 typedef struct beacon_s beacon_t;
-
-#define STATE_NONE (0)
-#define STATE_SIMPLEX (1)
-#define STATE_DUPLEX (2)
 
 struct neighbour_s {
     int state;

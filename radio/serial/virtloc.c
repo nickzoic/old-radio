@@ -1,4 +1,4 @@
-// $Id: virtloc.c,v 1.3 2009-02-11 23:21:42 nick Exp $
+// $Id: virtloc.c,v 1.4 2009-03-04 07:45:13 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -77,6 +77,8 @@ int main(int argc, char **argv) {
                 if (timeout < holdoff) timeout = holdoff;
             }
         } while(!Interrupted && timeout > 0);
+        
+        beacon_cull();
         
         buffer[0] = 0x01;
         int n = beacon_prepare(buffer+1, sizeof(buffer)-1);        

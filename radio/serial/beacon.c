@@ -1,4 +1,4 @@
-// $Id: beacon.c,v 1.5 2009-03-04 07:14:40 nick Exp $
+// $Id: beacon.c,v 1.6 2009-03-04 07:45:13 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,11 +59,7 @@ void beacon_recv(unsigned char *buffer, int length) {
     
     for (i=0; i<nbeacon; i++) {
         if (beacon[i].id == Identifier) continue;
-        // if (beacon[i].stratum >= MAXSTRAT && beacon[i].stratum != STRAT_INF) continue;
         
-	//printf("%d: %6d (%d) [%d %d %d]", i, beacon[i].id, beacon[i].stratum,
-	//       beacon[i].vloc[0], beacon[i].vloc[1], beacon[i].vloc[2]);
-	
         int j;
         for (j=0; j < Nneigh; j++) {
             if (Neighbours[j].id == beacon[i].id) break;
@@ -78,35 +74,19 @@ void beacon_recv(unsigned char *buffer, int length) {
 	    
 	    Neighbours[j].id = beacon[i].id;
 	    Neighbours[j].stratum = stratum;
-	    
 	    for (int k=0; k<VLOC_DIM; k++) Neighbours[j].vloc[k] = beacon[i].vloc[k];
         
 	    Neighbours[j].stamp = stamp;
-	    Neighbours[j].state = 1;
-	    
-	    //printf(" => %d", j);
-        }
-	//printf("\n");
+	    Neighbours[j].state = 1; 
+	}
     }
 }
 
 int beacon_prepare(unsigned char *buffer, int length) {
-    time_t stamp_timeout = time(NULL) - 3;
     beacon_t *beacon = (beacon_t *)buffer;
     int j = 0;
-    printf("----- TABLE %6d %d\n", Identifier, Nneigh);
     for (int i=0; i<Nneigh && j * sizeof(beacon_t) < length; i++) {
-	
-	printf("%d {%d}: %6d (%d) [%d %d %d]\n", i, Neighbours[i].state, Neighbours[i].id, Neighbours[i].stratum,
-	       Neighbours[i].vloc[0], Neighbours[i].vloc[1], Neighbours[i].vloc[2]);
-	
 	if (Neighbours[i].state == 0) continue;
-	if (Neighbours[i].stratum != 0 && Neighbours[i].stamp < stamp_timeout) {
-	    Neighbours[i].state = 0;
-	    continue;
-	}
-	
-	
 	if (Neighbours[i].stratum >= MAXSTRAT && Neighbours[i].stratum != STRAT_INF) continue;
 	
 	beacon[j].id = Neighbours[i].id;
@@ -114,7 +94,14 @@ int beacon_prepare(unsigned char *buffer, int length) {
 	for (int k=0; k<VLOC_DIM; k++) beacon[j].vloc[k] = Neighbours[i].vloc[k];
 	j++;
     }
-    printf("----- SEND %6d %d\n", Identifier, j);
     
     return j * sizeof(beacon_t);
+}
+
+void beacon_cull() {
+    time_t stamp_timeout = time(NULL) - BEACON_TIMEOUT;
+    
+    for (int i=0; i<Nneigh; i++)
+	if (Neighbours[i].stratum != 0 && Neighbours[i].stamp < stamp_timeout)
+	    Neighbours[i].state = 0;
 }

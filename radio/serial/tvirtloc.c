@@ -1,4 +1,4 @@
-// $Id: tvirtloc.c,v 1.2 2009-02-11 23:21:42 nick Exp $
+// $Id: tvirtloc.c,v 1.3 2009-03-04 07:45:13 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,21 +24,27 @@
 
 int fd;
 pthread_mutex_t collision_mutex;
+pthread_mutex_t beacon_mutex;
 
 void *writer(void *x) {
     unsigned char buffer[1024];
+    buffer[0] = 0x01;
     
     printf("Writer Started ...\n");
     
     while (1) {
-        pthread_mutex_lock(&collision_mutex);
+    
+        pthread_mutex_lock(&beacon_mutex);        
+        beacon_cull();
+        int n = beacon_prepare(buffer+1, sizeof(buffer)-1);
+        pthread_mutex_unlock(&beacon_mutex);
         
-        buffer[0] = 0x01;
-        int n = beacon_prepare(buffer+1, sizeof(buffer)-1);        
         crc16_set(buffer, n+3);
-        send_packet(fd, buffer, n+3);
         
+        pthread_mutex_lock(&collision_mutex);    
+        send_packet(fd, buffer, n+3);
         pthread_mutex_unlock(&collision_mutex);
+
         sleep(5);
     }
 }
@@ -55,7 +61,9 @@ void *reader(void *x) {
             do {
                 int n = recv_packet(fd, buffer, sizeof(buffer)-3, 100);
                 if (crc16_check(buffer,n) && buffer[0] == 0x01) {
+                    pthread_mutex_lock(&beacon_mutex);
                     beacon_recv(buffer+1, n-3);
+                    pthread_mutex_unlock(&beacon_mutex);
                 } else {
                     printf("BAD PACKET %d %d\n", n, buffer[0]);
                 }
