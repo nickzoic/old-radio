@@ -1,4 +1,4 @@
-/* $Id: sendrecv.c,v 1.19 2009-02-11 00:55:10 nick Exp $ */
+/* $Id: sendrecv.c,v 1.20 2009-03-04 07:14:40 nick Exp $ */
 
 // This handles the lowest level of the protocol stack: encoding bytes into
 // symbols and pushing them out the serial port.  It doesn't do much in the
@@ -20,9 +20,9 @@
 #include "sendrecv.h"
 #include "symbols.h"
 
-#define PREAMBLE_LEN (5)
+#define PREAMBLE_LEN (3)
 #define UARTSYNC_LEN (2)
-#define EPILOGUE_LEN (5)
+#define EPILOGUE_LEN (3)
 
 #define MAX_PACKET_BYTES (8192)
 #define MAX_PACKET_SYMBOLS ((MAX_PACKET_BYTES*8/7)+PREAMBLE_LEN+UARTSYNC_LEN+EPILOGUE_LEN+1)

@@ -1,15 +1,16 @@
-// $Id: beacon.c,v 1.4 2009-02-11 23:21:41 nick Exp $
+// $Id: beacon.c,v 1.5 2009-03-04 07:14:40 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <time.h>
 
 #include "beacon.h"
 
 nodeid_t Identifier = 0;
 int Nneigh = 0;
-neighbour_t Neighbours[MAXNEIGH];
+neighbour_t Neighbours[MAXNEIGH] = { { 0 } };
 
 void print_neigh(neighbour_t *neigh) {
     printf("%d (%d) [ ", neigh->id, neigh->stratum);
@@ -22,6 +23,7 @@ void print_neigh(neighbour_t *neigh) {
 void beacon_init(nodeid_t identifier) {
     Identifier = identifier;
     Nneigh = 1;
+    Neighbours[0].state = 1;
     Neighbours[0].id = Identifier;
     Neighbours[0].stratum = 0;
     for (int i = 0; i < VLOC_DIM; i++) {
@@ -30,55 +32,89 @@ void beacon_init(nodeid_t identifier) {
 }
 
 void beacon_recv(unsigned char *buffer, int length) {
-    neighbour_t *buff = (neighbour_t *)buffer;
-    assert(length % sizeof(neighbour_t) == 0);
-    int nbuff = length / sizeof(neighbour_t);
+    
+    // Interpret the packet as an array of beacon_t.
+    beacon_t *beacon = (beacon_t *)buffer;
+    assert(length % sizeof(beacon_t) == 0);
+    assert(beacon[0].stratum == 0);
+    int nbeacon = length / sizeof(beacon_t);
     int i;
     
+    time_t stamp = time(NULL);
+    
     // Ignore packets from ourself
-    if (buff[0].id == Identifier) return;
-    assert(buff[0].stratum == 0);
+    if (beacon[0].id == Identifier) return;
     
     // If our id isn't in the packet, maybe we can't be heard by this node
-    for (i=1; i<nbuff; i++) {
-        if (buff[i].id == Identifier && (buff[i].stratum == 1 || buff[i].stratum == STRAT_INF)) break;
+    for (i=1; i<nbeacon; i++) {
+        if (beacon[i].id == Identifier && (beacon[i].stratum == 1 || beacon[i].stratum == STRAT_INF)) break;
     }
-    if (i == nbuff) {
+    if (i == nbeacon) {
         // our id wasn't found ... truncate the packet.
-        nbuff = 1;
-        buff[0].stratum = STRAT_INF;
+        nbeacon = 1;
+        beacon[0].stratum = STRAT_INF;
     }
     
-    for (i=0; i<nbuff; i++) {
-        //printf("R%d.%d = %d (%d)\n", buff[0].id, i, buff[i].id, buff[i].stratum);
+    printf("----- RECV %6d %d\n", beacon[0].id, nbeacon);
     
-        if (buff[i].id == Identifier) continue;
-        if (buff[i].stratum >= MAXSTRAT && buff[i].stratum != STRAT_INF) continue;
+    for (i=0; i<nbeacon; i++) {
+        if (beacon[i].id == Identifier) continue;
+        // if (beacon[i].stratum >= MAXSTRAT && beacon[i].stratum != STRAT_INF) continue;
         
+	//printf("%d: %6d (%d) [%d %d %d]", i, beacon[i].id, beacon[i].stratum,
+	//       beacon[i].vloc[0], beacon[i].vloc[1], beacon[i].vloc[2]);
+	
         int j;
         for (j=0; j < Nneigh; j++) {
-            if (Neighbours[j].id == buff[i].id) break;
+            if (Neighbours[j].id == beacon[i].id) break;
         }
         assert (j < MAXNEIGH);
-        if (j == Nneigh || Neighbours[j].stratum > buff[i].stratum) {
+	
+	strat_t stratum = beacon[i].stratum;
+	if (stratum < STRAT_INF) stratum++;
+	
+        if (j == Nneigh || !Neighbours[j].state || Neighbours[j].stratum >= stratum) {
             if (j == Nneigh) Nneigh++;
-            memcpy(Neighbours+j, buff+i, sizeof(neighbour_t));
-            if (Neighbours[j].stratum < STRAT_INF) Neighbours[j].stratum ++;
-            //printf("   -> %d.%d: ", Identifier, j);
-	    //print_neigh(&Neighbours[j]);
+	    
+	    Neighbours[j].id = beacon[i].id;
+	    Neighbours[j].stratum = stratum;
+	    
+	    for (int k=0; k<VLOC_DIM; k++) Neighbours[j].vloc[k] = beacon[i].vloc[k];
+        
+	    Neighbours[j].stamp = stamp;
+	    Neighbours[j].state = 1;
+	    
+	    //printf(" => %d", j);
         }
+	//printf("\n");
     }
 }
 
 int beacon_prepare(unsigned char *buffer, int length) {
-    printf("-----\n");
-    for (int i=0; i<Nneigh; i++) {
-        printf("S%d.%d: ", Identifier, i);
-	print_neigh(&Neighbours[i]);
+    time_t stamp_timeout = time(NULL) - 3;
+    beacon_t *beacon = (beacon_t *)buffer;
+    int j = 0;
+    printf("----- TABLE %6d %d\n", Identifier, Nneigh);
+    for (int i=0; i<Nneigh && j * sizeof(beacon_t) < length; i++) {
+	
+	printf("%d {%d}: %6d (%d) [%d %d %d]\n", i, Neighbours[i].state, Neighbours[i].id, Neighbours[i].stratum,
+	       Neighbours[i].vloc[0], Neighbours[i].vloc[1], Neighbours[i].vloc[2]);
+	
+	if (Neighbours[i].state == 0) continue;
+	if (Neighbours[i].stratum != 0 && Neighbours[i].stamp < stamp_timeout) {
+	    Neighbours[i].state = 0;
+	    continue;
+	}
+	
+	
+	if (Neighbours[i].stratum >= MAXSTRAT && Neighbours[i].stratum != STRAT_INF) continue;
+	
+	beacon[j].id = Neighbours[i].id;
+	beacon[j].stratum = Neighbours[j].stratum;
+	for (int k=0; k<VLOC_DIM; k++) beacon[j].vloc[k] = Neighbours[i].vloc[k];
+	j++;
     }
-    printf("-----\n");
-    int size = Nneigh * sizeof(neighbour_t);
-    assert (size <= length);
-    memcpy(buffer, Neighbours, size);
-    return size;
+    printf("----- SEND %6d %d\n", Identifier, j);
+    
+    return j * sizeof(beacon_t);
 }

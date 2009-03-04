@@ -1,20 +1,35 @@
-// $Id: beacon.h,v 1.2 2009-02-11 07:29:34 nick Exp $
+// $Id: beacon.h,v 1.3 2009-03-04 07:14:40 nick Exp $
 
 #define VLOC_DIM (3)
 #define MAXNEIGH (20)
 #define MAXSTRAT (5)
 #define STRAT_INF (255)
 
-typedef int nodeid_t;
-typedef int loc_t;
+typedef u_int16_t nodeid_t;
+typedef int32_t loc_t;
+typedef u_int8_t strat_t;
 
 typedef loc_t vloc_t[VLOC_DIM];
 
-typedef struct {
+struct beacon_s {
     nodeid_t id;
-    unsigned char stratum;
+    strat_t stratum;
     vloc_t vloc;
-} neighbour_t;
+} __attribute__((__packed__));
+typedef struct beacon_s beacon_t;
+
+#define STATE_NONE (0)
+#define STATE_SIMPLEX (1)
+#define STATE_DUPLEX (2)
+
+struct neighbour_s {
+    int state;
+    nodeid_t id;
+    strat_t stratum;
+    vloc_t vloc;
+    time_t stamp;
+};
+typedef struct neighbour_s neighbour_t;
 
 void beacon_init(nodeid_t identifier);   
 
