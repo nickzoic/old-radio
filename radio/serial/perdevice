@@ -1,0 +1,13 @@
+#!/bin/bash
+# $Id: perdevice,v 1.1 2009-03-25 00:44:22 nick Exp $
+
+PROGRAM=$1
+BAUDRATE=${2:-9600}
+
+./identify.pl | (
+    while read DEVICE IDENTIFIER ETC; do
+	echo FOUND $DEVICE $IDENTIFIER $ETC
+        echo $PROGRAM $DEVICE $BAUDRATE $IDENTIFIER &
+    done
+    wait
+)
