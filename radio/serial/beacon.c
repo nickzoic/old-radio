@@ -1,4 +1,4 @@
-// $Id: beacon.c,v 1.7 2009-03-04 08:56:16 nick Exp $
+// $Id: beacon.c,v 1.8 2009-03-25 07:07:47 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +7,8 @@
 #include <time.h>
 
 #include <math.h>
+
+#include <sys/time.h>
 
 #include "beacon.h"
 
@@ -57,7 +59,7 @@ void beacon_recv(unsigned char *buffer, int length) {
         beacon[0].stratum = STRAT_INF;
     }
     
-    printf("----- RECV %6d %d\n", beacon[0].id, nbeacon);
+    // printf("----- RECV %6d %d\n", beacon[0].id, nbeacon);
     
     for (i=0; i<nbeacon; i++) {
         if (beacon[i].id == Identifier) continue;
@@ -151,11 +153,15 @@ void beacon_recalc() {
 	for (int k=0; k<VLOC_DIM; k++) Neighbours[0].vloc[k] = oldvloc[k];
     }
     
-    printf ("RECALC: 0 (%5d %5d %5d) { %ld -> %ld }\n", Neighbours[0].vloc[0], Neighbours[0].vloc[1], Neighbours[0].vloc[2], curenergy, oldenergy);
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    unsigned long tt = tv.tv_sec*1000000+tv.tv_usec;
+    
+    printf("%lu %d   %d %d %d  ", tt, Identifier, Neighbours[0].vloc[0], Neighbours[0].vloc[1], Neighbours[0].vloc[2]);
+    
     for (int i=1; i<Nneigh; i++) {
-	if (!Neighbours[i].state || Neighbours[i].stratum == STRAT_INF) continue;
-	printf ("%6d: %d (%5d %5d %5d) (%5d %5d %5d)\n", Neighbours[i].id, Neighbours[i].stratum,
-		Neighbours[i].vloc[0], Neighbours[i].vloc[1], Neighbours[i].vloc[2],
-		Neighbours[i].vloc[0] - Neighbours[0].vloc[0], Neighbours[i].vloc[1] - Neighbours[0].vloc[1], Neighbours[i].vloc[2] - Neighbours[0].vloc[2]);
+	if (!Neighbours[i].state || Neighbours[i].stratum != 1) continue;
+	printf (" %d", Neighbours[i].id);
     }
+    printf("\n");
 }

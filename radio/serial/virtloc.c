@@ -1,4 +1,4 @@
-// $Id: virtloc.c,v 1.5 2009-03-04 08:56:16 nick Exp $
+// $Id: virtloc.c,v 1.6 2009-03-25 07:07:47 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,6 +37,7 @@ int main(int argc, char **argv) {
     int baud_rate = (argc>2)?atoi(argv[2]):9600;
     int identifier = (argc>3)?atoi(argv[3]):(int)getpid();
 
+    
     // seed the PRNG from some randomish stuff ...
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -81,6 +82,4 @@ int main(int argc, char **argv) {
         crc16_set(buffer, n+3);
         send_packet(fd, buffer, n+3);
     }
-    
-    printf("Fin.\n");
 }

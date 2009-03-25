@@ -1,0 +1,91 @@
+#!/usr/bin/perl -w
+# $Id: plotter,v 1.1 2009-03-25 07:07:47 nick Exp $
+
+use strict;
+use PostScript::Simple;
+use Data::Dumper;
+
+my ($filename, $interval) = @ARGV;
+$interval ||= 1_000_000;
+
+open(my $fp, $filename) or die "can't open $filename";
+
+$filename =~ s/\.snap$//;
+
+my $nodes = {};
+
+my $lasttime = 0;
+my $nexttime = 0;
+my $count = 0;
+
+while (defined($_ = <$fp>)) {
+	my ($t, $nn, $x, $y, $z, @ne) = split /\s+/;
+	die "TIME OUT OF JOINT AT LINE $. TIME $t\n" if $t < $lasttime;
+	$lasttime = $t;
+	$nexttime ||= $t;
+	
+	while ($t > $nexttime) {
+		makeplot(sprintf('eps/%s-%06d.eps', $filename, $count), $nodes);
+		$nexttime += $interval;
+		$count++;
+	}
+	$nodes->{$nn} = [ [ $x, $y, $z ], [ @ne ] ];
+}
+makeplot(sprintf('eps/%s-%06d.eps', $filename, $count), $nodes);
+
+close($fp);
+
+##############################################################################
+
+sub tran {
+	my ($k, $c, $x, $y, $z) = @_;
+
+	$x ||= 0;
+	$y ||= 0;
+	$z ||= 0;
+
+	return ($x/$k+$c, $y/$k+$c);
+}
+
+##############################################################################
+
+
+sub makeplot {
+	my ($filename, $nodes) = @_;
+
+	print "Plotting $filename ... ", scalar keys %$nodes, " nodes\n";
+	
+	my @tran = (5.0, 100);
+
+	my $plot = new PostScript::Simple (
+		eps => 1,
+		xsize => 200,
+		ysize => 200,
+		units => "mm",
+		colour => 1
+	);
+
+	$plot->setcolour("black");
+	$plot->setlinewidth(0.1);
+
+	foreach my $n1 (keys %$nodes) {
+		my ($v1, $links) = @{$nodes->{$n1}};
+		my @c1 = tran(@tran, @$v1);
+		foreach my $n2 (@$links) {
+			my $v2 = $nodes->{$n2}[0];
+			my @c2 = tran(@tran, @$v2);
+			$plot->line($c1[0], $c1[1], $c2[0], $c2[1]);
+		}
+	}
+
+	foreach my $n1 (keys %$nodes) {
+		my $vloc = $nodes->{$n1}[0];
+		my ($x, $y) = tran(@tran, @$vloc);
+		$plot->setcolour("red");
+		$plot->box( {filled => 1}, $x-1, $y-1, $x+1, $y+1 );
+		$plot->setcolour("black");
+		$plot->box( {filled => 0}, $x-1, $y-1, $x+1, $y+1 );
+	}
+
+	$plot->output($filename);
+}

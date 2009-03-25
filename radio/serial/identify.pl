@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: identify.pl,v 1.2 2009-02-11 06:36:38 nick Exp $
+# $Id: identify.pl,v 1.3 2009-03-25 07:07:47 nick Exp $
 
 # Uses the output of dmesg and lsusb to identify which ttyUSB* is which device.
 
@@ -12,6 +12,8 @@ my %serials = (
     A7RUH71A => 5,
     A7RUH73F => 6,
     A7RUH72S => 8,
+    A8007xwJ => 10,
+    A8007xwM => 11,
 );
 
 my %address = ();
@@ -38,7 +40,7 @@ foreach (`dmesg`) {
 # Run through the map of bus:devnum to device name, use lsusb to extract
 # serial number information for each device and print it out.
 
-foreach my $dev (keys %device) {
+foreach my $dev (sort { $device{$a} cmp $device{$b} } keys %device) {
     my ($manu, $prod, $serial) = ('','','');
     foreach (`lsusb -v -s $dev`) {
         if (/iManufacturer\s+\d+\s+(\w+)/) { $manu = $1; }
