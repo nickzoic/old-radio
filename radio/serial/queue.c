@@ -1,4 +1,4 @@
-// $Id: queue.c,v 1.2 2009-04-08 08:38:07 nick Exp $
+// $Id: queue.c,v 1.3 2009-04-08 08:49:20 nick Exp $
 
 // Run a packet queue in its own thread.  This thread handles tranmitting
 // and receiving packets.  This code also handles CSMA/CA.
@@ -22,14 +22,12 @@ struct queue_s {
 };
 typedef struct queue_s queue_t;
 
-#define QUEUE_HOLDOFF_MIN (50)
-#define QUEUE_HOLDOFF_MAX (100)
-#define QUEUE_RAND_HOLDOFF (QUEUE_HOLDOFF_MIN + (rand() % (QUEUE_HOLDOFF_MAX - QUEUE_HOLDOFF_MIN)))
-
 // This mutex is used to prevent the send thread trying to send while the recv
 // thread is receiving.
 
 pthread_mutex_t queue_holdoff_mutex;
+int queue_holdoff_min = 100;
+int queue_holdoff_max = 500;
 
 // Send thread stuff ... this thread maintains a queue of packets to send, and
 // handles sending them.
@@ -45,21 +43,28 @@ queue_t *queue_send_tail = NULL;
 
 pthread_t queue_recv_thread;
 void (*queue_recv_handler)(unsigned char *, unsigned int);
-void (*queue_time_handler)();
-unsigned int queue_time_timeout = 5000;
 
 //------------------------------------------------------------------------------
-// queue_register_*: set the receiver and timeout handlers
+// queue_register_recv: set the receiver handlers
 
 void queue_register_recv(void (*func)(unsigned char *, unsigned int))
 {
     queue_recv_handler = func;
 }
 
-void queue_register_time(void (*func)(), unsigned int timeout)
+//------------------------------------------------------------------------------
+// queue_set_holdoff: set the holdoff parameters
+// queue_rand_holdoff: pick a (randomized) holdoff time.
+
+void queue_set_holdoff(unsigned int holdoff_min, unsigned int holdoff_max)
 {
-    queue_time_handler = func;
-    queue_time_timeout = timeout;
+    queue_holdoff_min = holdoff_min;
+    queue_holdoff_max = holdoff_max;
+}
+
+unsigned int queue_rand_holdoff()
+{
+    return queue_holdoff_min + (rand() % (queue_holdoff_max - queue_holdoff_min));
 }
 
 //------------------------------------------------------------------------------
@@ -90,8 +95,10 @@ void queue_send_packet(unsigned char *data, unsigned int length)
 }
 
 //------------------------------------------------------------------------------
+// queue_send_get_size: measures the queue length by iterating down along the
+// queue (not terribly efficient, but I didn't want to add a queue_length.
 
-int queue_send_size()
+int queue_send_get_size()
 {
     if (!queue_send_head) return 0;
     
@@ -152,17 +159,16 @@ void *queue_receiver(void *xfd)
     unsigned char buffer[1024];
     
     while (1) {
-        if (wait_packet(fd, queue_time_timeout)) {
+        if (wait_packet(fd, 5000)) {
             pthread_mutex_lock(&queue_holdoff_mutex);
             
                 do {
                     int nrecv = recv_packet(fd, buffer, sizeof(buffer)-3, 100);
                     if (nrecv && queue_recv_handler) queue_recv_handler(buffer, nrecv);           
-                } while (wait_packet(fd, QUEUE_RAND_HOLDOFF));
+                } while (wait_packet(fd, queue_rand_holdoff()));
                 
             pthread_mutex_unlock(&queue_holdoff_mutex);
         }
-        if (queue_time_handler) queue_time_handler();
     } 
 }
 
@@ -189,3 +195,5 @@ void queue_stop()
     pthread_mutex_destroy(&queue_send_mutex);
     pthread_cond_destroy(&queue_send_cv);
 }
+
+//==============================================================================

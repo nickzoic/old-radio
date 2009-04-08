@@ -1,4 +1,4 @@
-// $Id: use_queue.c,v 1.2 2009-04-08 08:38:08 nick Exp $
+// $Id: use_queue.c,v 1.3 2009-04-08 08:49:20 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,14 +23,6 @@ void recv_handler(unsigned char *data, unsigned int length) {
     fprintf(stderr, "%06d.%06d recv_handler(%p, %d) -> %d\n", (int)tv.tv_sec, (int)tv.tv_usec, data, length, okay);
 }
 
-void time_handler() {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    
-    fprintf(stderr, "%06d.%06d time_handler()\n", (int)tv.tv_sec, (int)tv.tv_usec);
-    queue_send_packet((unsigned char *)testpacket, sizeof(testpacket));
-}
-
 int main(int argc, char **argv) {
 
     int fd = open(argv[1], O_RDWR | O_SYNC);
@@ -46,7 +38,7 @@ int main(int argc, char **argv) {
         struct timeval tv;
         gettimeofday(&tv, NULL);
     
-        fprintf(stderr, "%06d.%06d sending %d\n", (int)tv.tv_sec, (int)tv.tv_usec, queue_send_size());
+        fprintf(stderr, "%06d.%06d sending %d\n", (int)tv.tv_sec, (int)tv.tv_usec, queue_send_get_size());
         queue_send_packet((unsigned char *)testpacket, sizeof(testpacket));
     }
     
