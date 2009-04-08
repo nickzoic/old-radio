@@ -1,4 +1,4 @@
-// $Id: queue.c,v 1.1 2009-04-08 07:06:51 nick Exp $
+// $Id: queue.c,v 1.2 2009-04-08 08:38:07 nick Exp $
 
 // Run a packet queue in its own thread.  This thread handles tranmitting
 // and receiving packets.  This code also handles CSMA/CA.
@@ -22,8 +22,8 @@ struct queue_s {
 };
 typedef struct queue_s queue_t;
 
-#define QUEUE_HOLDOFF_MIN (200)
-#define QUEUE_HOLDOFF_MAX (1000)
+#define QUEUE_HOLDOFF_MIN (50)
+#define QUEUE_HOLDOFF_MAX (100)
 #define QUEUE_RAND_HOLDOFF (QUEUE_HOLDOFF_MIN + (rand() % (QUEUE_HOLDOFF_MAX - QUEUE_HOLDOFF_MIN)))
 
 // This mutex is used to prevent the send thread trying to send while the recv
@@ -90,6 +90,26 @@ void queue_send_packet(unsigned char *data, unsigned int length)
 }
 
 //------------------------------------------------------------------------------
+
+int queue_send_size()
+{
+    if (!queue_send_head) return 0;
+    
+    int count = 0;
+    pthread_mutex_lock(&queue_send_mutex);
+    
+        queue_t *x = queue_send_head;
+        while (x) {
+            x = x->next;
+            count++;
+        }
+        
+    pthread_mutex_unlock(&queue_send_mutex);
+    
+    return count;
+}
+
+//------------------------------------------------------------------------------
 // queue_sender: runs in the queue_send_thread
 
 void *queue_sender(void *xfd)
@@ -137,7 +157,7 @@ void *queue_receiver(void *xfd)
             
                 do {
                     int nrecv = recv_packet(fd, buffer, sizeof(buffer)-3, 100);
-                    if (queue_recv_handler) queue_recv_handler(buffer, nrecv);           
+                    if (nrecv && queue_recv_handler) queue_recv_handler(buffer, nrecv);           
                 } while (wait_packet(fd, QUEUE_RAND_HOLDOFF));
                 
             pthread_mutex_unlock(&queue_holdoff_mutex);
