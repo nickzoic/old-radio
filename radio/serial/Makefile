@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.22 2009-02-11 22:29:32 nick Exp $
+# $Id: Makefile,v 1.23 2009-04-08 07:06:51 nick Exp $
 
 CFLAGS=-std=gnu99 -O2 -Wall
 LDLIBS=-lpthread
@@ -7,6 +7,7 @@ PROGS=send_packets recv_packets chatter tchatter virtloc tvirtloc spy
 
 all: ${PROGS}
 
+use_queue: use_queue.o queue.o sendrecv.o symbols.o
 
 test: test_symbols test_crc
 	./test_symbols
