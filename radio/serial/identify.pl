@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: identify.pl,v 1.3 2009-03-25 07:07:47 nick Exp $
+# $Id: identify.pl,v 1.4 2009-05-13 08:19:39 nick Exp $
 
 # Uses the output of dmesg and lsusb to identify which ttyUSB* is which device.
 
@@ -8,12 +8,20 @@ use strict;
 # Map of serial numbers to the numbers I've written on the boards in texta.
 
 my %serials = (
-    A7RUH59A => 4,
+    # Revision2 boards (green)
+    A7RUH59A => 4,			# S
     A7RUH71A => 5,
-    A7RUH73F => 6,
-    A7RUH72S => 8,
-    A8007xwJ => 10,
-    A8007xwM => 11,
+    A7RUH73F => 6,			# L
+    A7RUH72S => 8,			# S
+   
+    # Revision3 boards (red) 
+    A8007xwJ => 10,			# L
+    A8007xwM => 11,			# L
+    A8007xwK => 12,			# S
+    A8007xwg => 13,
+    A8007xwG => 14,
+    A8007xwp => 15,
+    A8007xwB => 16,
 );
 
 my %address = ();

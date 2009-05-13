@@ -1,4 +1,4 @@
-// $Id: beacon.c,v 1.8 2009-03-25 07:07:47 nick Exp $
+// $Id: beacon.c,v 1.9 2009-05-13 08:19:39 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,8 +46,15 @@ void beacon_recv(unsigned char *buffer, int length) {
     
     time_t stamp = time(NULL);
     
+    
     // Ignore packets from ourself
     if (beacon[0].id == Identifier) return;
+    
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    unsigned long tt = tv.tv_sec*1000000+tv.tv_usec;
+    
+    // printf("%lu %d R %d\n", tt, Identifier, beacon[0].id);
     
     // If our id isn't in the packet, maybe we can't be heard by this node
     for (i=1; i<nbeacon; i++) {
@@ -157,7 +164,7 @@ void beacon_recalc() {
     gettimeofday(&tv, NULL);
     unsigned long tt = tv.tv_sec*1000000+tv.tv_usec;
     
-    printf("%lu %d   %d %d %d  ", tt, Identifier, Neighbours[0].vloc[0], Neighbours[0].vloc[1], Neighbours[0].vloc[2]);
+    printf("%lu %d %+5d %+5d %+5d  ", tt, Identifier, Neighbours[0].vloc[0], Neighbours[0].vloc[1], Neighbours[0].vloc[2]);
     
     for (int i=1; i<Nneigh; i++) {
 	if (!Neighbours[i].state || Neighbours[i].stratum != 1) continue;
