@@ -1,0 +1,24 @@
+#!/bin/bash
+# $Id: perdevsort,v 1.1 2009-05-20 08:01:56 nick Exp $
+
+PROGRAM=$1
+BAUDRATE=${2:-9600}
+TEMPMASTER=`tempfile`
+OUTFILE=`date +run.%Y%m%d_%H%M%S.dat`
+echo "GENERATING $OUTFILE" > /dev/stderr
+
+./identify.pl | (
+    while read DEVICE IDENTIFIER ETC; do
+        TEMPFILE=`tempfile`
+        echo $TEMPFILE
+        echo $PROGRAM $DEVICE $BAUDRATE $IDENTIFIER \> $TEMPFILE > /dev/stderr
+        $PROGRAM $DEVICE $BAUDRATE $IDENTIFIER > $TEMPFILE &
+    done
+    wait
+) > $TEMPMASTER
+
+cat $TEMPMASTER | xargs cat | sort -n > $OUTFILE
+echo "GENERATED $OUTFILE" > /dev/stderr
+
+cat $TEMPMASTER | xargs rm
+rm $TEMPMASTER

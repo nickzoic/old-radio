@@ -1,0 +1,127 @@
+#!/usr/bin/perl -w
+# $Id: plotanim,v 1.1 2009-05-20 08:01:56 nick Exp $
+
+use strict;
+use Data::Dumper;
+
+my ($filename, $interval) = @ARGV;
+$interval ||= 1_000_000;
+
+open(my $fp, $filename) or die "can't open $filename";
+
+$filename =~ s/\.snap$//;
+
+my $nodes = {};
+
+my $lasttime = 0;
+my $nexttime = 0;
+my $count = 0;
+
+my ($st, $et);
+
+while (defined($_ = <$fp>)) {
+	my ($t, $nn, $x, $y, $z, @ne) = split /\s+/;
+	die "TIME OUT OF JOINT AT LINE $. TIME $t\n" if $t < $lasttime;
+	$lasttime = $t;
+	$nexttime ||= $t;
+	
+	push @{$nodes->{$nn}}, [ $t, $x, $y, $z, @ne ];
+
+	$st ||= $t; $et = $t;
+}
+
+close($fp);
+
+my $elapsed = ($et - $st) / 1000000;
+
+print << "__EOF" ;
+#VRML V2.0 utf8
+# plotanim
+Viewpoint {
+    position 0 0 1000
+    orientation 0 0 1 0
+}
+
+Shape {
+    geometry IndexedLineSet {
+	coord Coordinate {
+	    point [
+	        +100, +100, +100
+	        +100, +100, -100
+	        +100, -100, -100
+	        +100, -100, +100
+	        -100, +100, +100
+	        -100, +100, -100
+	        -100, -100, -100
+	        -100, -100, +100
+	    ]
+	}
+	coordIndex [
+	    0, 1, 2, 3, 0, 4, 5, 6, 7, 4, -1,
+	    1, 5, -1,
+	    2, 6, -1,
+	    3, 7, -1,
+	]
+    }
+}
+
+DEF TIMER TimeSensor {
+    loop TRUE
+    cycleInterval $elapsed
+}
+
+DEF FONTSTYLE FontStyle {
+    family  "SANS"
+    style   "BOLD"
+    size   10
+    justify ["MIDDLE", "MIDDLE"]
+}
+
+__EOF
+
+my @cols = ( "1 0 0", "0 1 0", "1 0 1", "0 1 1", "1 1 0", "0.8 0.8 0.8", "0.5 0.5 1", "0.5 1 0", "1 0.5 0" );
+my $cc = 0;
+foreach my $nn (keys %$nodes) {
+   my $col = $cols[$cc++ % @cols];
+   
+   print << "__EOF";
+DEF NODE$nn Transform {
+    translation 0 0 0
+    children [
+	Shape {
+	    geometry Sphere { radius 7 }
+	    appearance Appearance {
+		material DEF NMAT$nn Material {
+		    diffuseColor $col
+		    specularColor 1 1 1
+		    transparency 0.1
+		}
+	    }
+	}
+    ]
+}
+
+__EOF
+}
+
+foreach my $nn (keys %$nodes) {
+    my $intk = join "\n\t", map { ($_->[0] - $st) / ($et - $st) } @{$nodes->{$nn}};
+    my $intv = join ",\n\t", map { join ' ', $_->[1], $_->[2], $_->[3] } @{$nodes->{$nn}};
+    
+    print << "__EOF";
+DEF PATH$nn PositionInterpolator {
+    key [
+        $intk
+    ]
+    keyValue [
+        $intv
+    ]
+}
+
+ROUTE TIMER.fraction_changed TO PATH$nn.set_fraction
+ROUTE PATH$nn.value_changed TO NODE$nn.translation
+
+__EOF
+}
+
+print "# EOF\n";
