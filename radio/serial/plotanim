@@ -1,15 +1,10 @@
 #!/usr/bin/perl -w
-# $Id: plotanim,v 1.1 2009-05-20 08:01:56 nick Exp $
+# $Id: plotanim,v 1.2 2009-05-20 08:19:17 nick Exp $
 
 use strict;
 use Data::Dumper;
 
-my ($filename, $interval) = @ARGV;
-$interval ||= 1_000_000;
-
-open(my $fp, $filename) or die "can't open $filename";
-
-$filename =~ s/\.snap$//;
+our $Revision = qw$Revision: 1.2 $[1];
 
 my $nodes = {};
 
@@ -19,24 +14,22 @@ my $count = 0;
 
 my ($st, $et);
 
-while (defined($_ = <$fp>)) {
+while (<>) {
 	my ($t, $nn, $x, $y, $z, @ne) = split /\s+/;
 	die "TIME OUT OF JOINT AT LINE $. TIME $t\n" if $t < $lasttime;
 	$lasttime = $t;
 	$nexttime ||= $t;
 	
-	push @{$nodes->{$nn}}, [ $t, $x, $y, $z, @ne ];
+	push @{$nodes->{$nn}}, [ $t, $x, $y, $z ];
 
 	$st ||= $t; $et = $t;
 }
-
-close($fp);
 
 my $elapsed = ($et - $st) / 1000000;
 
 print << "__EOF" ;
 #VRML V2.0 utf8
-# plotanim
+# plotanim $Revision
 Viewpoint {
     position 0 0 1000
     orientation 0 0 1 0
