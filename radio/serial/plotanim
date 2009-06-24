@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
-# $Id: plotanim,v 1.3 2009-05-20 08:23:53 nick Exp $
+# $Id: plotanim,v 1.4 2009-06-24 07:07:23 nick Exp $
 
 use strict;
 use Data::Dumper;
 
-our $Revision = qw$Revision: 1.3 $[1];
+our $Revision = qw$Revision: 1.4 $[1];
 
 my $nodes = {};
 
@@ -71,7 +71,7 @@ my @cols = ( "1 0 0", "0 1 0", "1 0 1", "0 1 1", "1 1 0", "0.8 0.8 0.8", "0.5 0.
 my $cc = 0;
 
 foreach my $nn (keys %$nodes) {
-   my $col = $cols[$cc++ % @cols];
+   my $col = $cols[$nn % @cols];
    
    print << "__EOF";
 DEF NODE$nn Transform {
