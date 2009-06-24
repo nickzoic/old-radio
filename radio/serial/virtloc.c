@@ -1,4 +1,4 @@
-// $Id: virtloc.c,v 1.7 2009-05-13 08:19:41 nick Exp $
+// $Id: virtloc.c,v 1.8 2009-06-24 05:50:39 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,9 +23,9 @@ void handle_int(int x) {
     Interrupted = 1;
 }
 
-#define TIMEOUT (2500)
-#define HOLDOFFMAX (1500)
-#define HOLDOFFMIN (500)
+#define TIMEOUT (1000)
+#define HOLDOFFMAX (500)
+#define HOLDOFFMIN (100)
 
 int main(int argc, char **argv) {
     if (argc<2) {

@@ -1,4 +1,4 @@
-// $Id: beacon.c,v 1.9 2009-05-13 08:19:39 nick Exp $
+// $Id: beacon.c,v 1.10 2009-06-24 05:50:39 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,7 +31,7 @@ void beacon_init(nodeid_t identifier) {
     Neighbours[0].id = Identifier;
     Neighbours[0].stratum = 0;
     for (int i = 0; i < VLOC_DIM; i++) {
-	Neighbours[0].vloc[i] = rand() % 255 - 127;
+	Neighbours[0].vloc[i] = rand() % 11 - 5;
     }
 }
 
