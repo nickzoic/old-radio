@@ -1,4 +1,4 @@
-// $Id: topofind.c,v 1.1 2009-05-20 08:01:56 nick Exp $
+// $Id: topofind.c,v 1.2 2009-06-24 05:52:00 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
                 n = recv_packet(fd, buffer, sizeof(buffer), 100);
             
                 if (n > 2 && buffer[0] == 0xFF && crc16_check(buffer, n)) {
-                    printf("%d %d\n", identifier, buffer[2] * 256 + buffer[1]);
+                    printf("%d -> %d\n", buffer[2] * 256 + buffer[1], identifier);
                 }
             }
             
