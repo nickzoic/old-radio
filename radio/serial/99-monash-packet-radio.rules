@@ -1,0 +1,53 @@
+# INSTALL THIS AS /etc/udev/rules.d/99-monash-packet-radio.rules
+# $Id: 99-monash-packet-radio.rules,v 1.1 2009-07-22 03:52:29 nick Exp $
+# UPDATED 2009-07-22 11:51 nick
+
+# Nick's boards
+KERNEL=="ttyUSB*", ATTRS{product}=="USB Packet Radio",ATTRS{serial}=="A7RUH59A",MODE="0666",SYMLINK="radio4"
+KERNEL=="ttyUSB*", ATTRS{product}=="USB Packet Radio",ATTRS{serial}=="A7RUH71A",MODE="0666",SYMLINK="radio5"
+KERNEL=="ttyUSB*", ATTRS{product}=="USB Packet Radio",ATTRS{serial}=="A7RUH73F",MODE="0666",SYMLINK="radio6"
+KERNEL=="ttyUSB*", ATTRS{product}=="USB Packet Radio",ATTRS{serial}=="A7RUH72S",MODE="0666",SYMLINK="radio8"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwJ",MODE="0666",SYMLINK="radio10"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwM",MODE="0666",SYMLINK="radio11"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwK",MODE="0666",SYMLINK="radio12"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwg",MODE="0666",SYMLINK="radio13"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwG",MODE="0666",SYMLINK="radio14"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwp",MODE="0666",SYMLINK="radio15"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwB",MODE="0666",SYMLINK="radio16"
+
+# New batch for labs
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwA",MODE="0666",SYMLINK="radio20"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xw3",MODE="0666",SYMLINK="radio21"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwe",MODE="0666",SYMLINK="radio22"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwD",MODE="0666",SYMLINK="radio23"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwr",MODE="0666",SYMLINK="radio24"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwl",MODE="0666",SYMLINK="radio25"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwf",MODE="0666",SYMLINK="radio26"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwv",MODE="0666",SYMLINK="radio27"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwY",MODE="0666",SYMLINK="radio28"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwn",MODE="0666",SYMLINK="radio29"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwE",MODE="0666",SYMLINK="radio30"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xww",MODE="0666",SYMLINK="radio31"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwy",MODE="0666",SYMLINK="radio32"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwz",MODE="0666",SYMLINK="radio33"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwx",MODE="0666",SYMLINK="radio34"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xw2",MODE="0666",SYMLINK="radio35"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwt",MODE="0666",SYMLINK="radio36"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwm",MODE="0666",SYMLINK="radio37"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xw7",MODE="0666",SYMLINK="radio38"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwu",MODE="0666",SYMLINK="radio39"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwi",MODE="0666",SYMLINK="radio40"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xvX",MODE="0666",SYMLINK="radio41"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xw8",MODE="0666",SYMLINK="radio42"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xw4",MODE="0666",SYMLINK="radio43"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwh",MODE="0666",SYMLINK="radio44"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwF",MODE="0666",SYMLINK="radio45"
+
+# Ahmet's Ones
+KERNEL=="ttyUSB*", ATTRS{product}=="USB Packet Radio",ATTRS{serial}=="A7RZE5IB",MODE="0666",SYMLINK="radio46"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwd",MODE="0666",SYMLINK="radio47"
+KERNEL=="ttyUSB*", ATTRS{product}=="*FT232*",ATTRS{serial}=="A8007xwL",MODE="0666",SYMLINK="radio48"
+
+
+
+
