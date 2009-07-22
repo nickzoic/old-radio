@@ -1,12 +1,17 @@
 #!/bin/bash
-# $Id: perdevice,v 1.2 2009-03-25 07:07:47 nick Exp $
+# $Id: perdevice,v 1.3 2009-07-22 05:49:33 nick Exp $
 
 PROGRAM=$1
 BAUDRATE=${2:-9600}
 
-./identify.pl | (
-    while read DEVICE IDENTIFIER ETC; do
-        $PROGRAM $DEVICE $BAUDRATE $IDENTIFIER &
-    done
-    wait
+#./identify.pl | (
+#    while read DEVICE IDENTIFIER ETC; do
+
+(
+	for DEVICE in /dev/radio*; do
+		echo $PROGRAM $DEVICE $BAUDRATE $IDENTIFIER
+		$PROGRAM $DEVICE $BAUDRATE $IDENTIFIER &
+	done
+	jobs
+	wait
 )
