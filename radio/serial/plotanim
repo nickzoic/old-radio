@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
-# $Id: plotanim,v 1.4 2009-06-24 07:07:23 nick Exp $
+# $Id: plotanim,v 1.5 2009-08-05 06:18:31 nick Exp $
 
 use strict;
 use Data::Dumper;
 
-our $Revision = qw$Revision: 1.4 $[1];
+our $Revision = qw$Revision: 1.5 $[1];
 
 my $nodes = {};
 
@@ -59,10 +59,43 @@ Shape {
     }
 }
 
+Billboard {
+    children [
+	Transform {
+	    translation -250 250 -500
+	    children [
+		Cylinder {
+		    radius 1
+		    height 500
+		}
+		DEF CLOCK Transform {
+		    translation 0 0 0
+		    children [
+			Sphere {
+			    radius 10
+			}
+		    ]
+		}
+	    ]
+	}
+    ] 
+    axisOfRotation 0 0 0 
+    bboxCenter 0 0 0
+    bboxSize -1 -1 -1
+} 
+
 DEF TIMER TimeSensor {
     loop TRUE
     cycleInterval $elapsed
 }
+
+DEF CLOCKPATH PositionInterpolator {
+    key [ 0, 1 ]
+    keyValue [ 0, -250, 0, 0, 250, 0 ]
+}
+
+ROUTE TIMER.fraction_changed TO CLOCKPATH.set_fraction
+ROUTE CLOCKPATH.value_changed TO CLOCK.translation
 
 __EOF
 
@@ -86,6 +119,15 @@ DEF NODE$nn Transform {
 		    transparency 0.1
 		}
 	    }
+	}
+	Billboard {
+	    children [
+		Text {
+		    string [ "$nn" ]
+		    fontStyle FontStyle { size 10 }
+		}
+	    ]
+	    axisOfRotation 0 0 0
 	}
     ]
 }

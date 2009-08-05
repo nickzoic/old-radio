@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: perdevsort,v 1.1 2009-05-20 08:01:56 nick Exp $
+# $Id: perdevsort,v 1.2 2009-08-05 06:18:30 nick Exp $
 
 PROGRAM=$1
 BAUDRATE=${2:-9600}
@@ -7,8 +7,9 @@ TEMPMASTER=`tempfile`
 OUTFILE=`date +run.%Y%m%d_%H%M%S.dat`
 echo "GENERATING $OUTFILE" > /dev/stderr
 
-./identify.pl | (
-    while read DEVICE IDENTIFIER ETC; do
+(
+    for DEVICE in /dev/radio*; do
+	IDENTIFIER=${DEVICE:10}
         TEMPFILE=`tempfile`
         echo $TEMPFILE
         echo $PROGRAM $DEVICE $BAUDRATE $IDENTIFIER \> $TEMPFILE > /dev/stderr

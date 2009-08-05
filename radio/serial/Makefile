@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.24 2009-05-20 08:01:56 nick Exp $
+# $Id: Makefile,v 1.25 2009-08-05 06:18:30 nick Exp $
 
 CFLAGS=-std=gnu99 -O2 -Wall
 LDLIBS=-lpthread
@@ -28,9 +28,15 @@ virtloc: virtloc.o beacon.o symbols.o sendrecv.o crc.o
 
 virtloc.o: virtloc.c sendrecv.h 
 
+
 tvirtloc: tvirtloc.o beacon.o symbols.o sendrecv.o crc.o
 
 tvirtloc.o: tvirtloc.c sendrecv.h
+
+
+mvirtloc: mvirtloc.o beacon.o symbols.o sendrecv.o crc.o
+
+mvirtloc.o: mvirtloc.c sendrecv.h
 
 
 chatter: chatter.o sendrecv.o symbols.o crc.o
