@@ -1,4 +1,4 @@
-// $Id: virtloc.c,v 1.8 2009-06-24 05:50:39 nick Exp $
+// $Id: virtloc.c,v 1.9 2009-08-12 03:49:37 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,13 +29,14 @@ void handle_int(int x) {
 
 int main(int argc, char **argv) {
     if (argc<2) {
-        fprintf(stderr, "usage: %s <devname> [<baud rate> [<identifier>]]\n", argv[0]);
+        fprintf(stderr, "usage: %s <devname> [<endtime> [<baud rate> [<identifier>]]]\n", argv[0]);
         exit(1);
     }
 
     char *device = (argc>1)?argv[1]:"/dev/ttyUSB0";
-    int baud_rate = (argc>2)?atoi(argv[2]):9600;
-    int identifier = (argc>3)?atoi(argv[3]):(int)getpid();
+    int endtime = (argc>2)?atoi(argv[2]):60;
+    int baud_rate = (argc>3)?atoi(argv[3]):9600;
+    int identifier = (argc>4)?atoi(argv[4]):(int)getpid();
 
     
     // seed the PRNG from some randomish stuff ...
@@ -52,9 +53,16 @@ int main(int argc, char **argv) {
 
     unsigned char buffer[1024];
     
+    struct timeval tv0;
+    gettimeofday(&tv0, NULL);
+
     while (!Interrupted) {
         struct timeval tv1, tv2;
         gettimeofday(&tv1, NULL);
+
+        long int ex = (tv1.tv_sec - tv0.tv_sec) * 1000L + (tv1.tv_usec - tv0.tv_usec) / 1000L;
+	if (ex > endtime * 1000) exit(0);
+
         long int timeout = TIMEOUT;
         do {
             int n = 0;

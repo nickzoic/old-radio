@@ -1,4 +1,4 @@
-// $Id: beacon.c,v 1.10 2009-06-24 05:50:39 nick Exp $
+// $Id: beacon.c,v 1.11 2009-08-12 03:49:37 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -162,7 +162,7 @@ void beacon_recalc() {
     
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    unsigned long tt = tv.tv_sec*1000000+tv.tv_usec;
+    unsigned long tt = (tv.tv_sec % 1000)*1000000+tv.tv_usec;
     
     printf("%lu %d %+5d %+5d %+5d  ", tt, Identifier, Neighbours[0].vloc[0], Neighbours[0].vloc[1], Neighbours[0].vloc[2]);
     
