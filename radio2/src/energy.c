@@ -1,4 +1,7 @@
-// $Id: energy.c,v 1.1 2009-09-24 00:21:14 nick Exp $
+// $Id: energy.c,v 1.2 2009-09-24 03:01:34 nick Exp $
+
+// There are two types of "energy" used in VL ... attraction to 1-neighbours
+// and repulsion from 2-neighbours.
 
 #include <stdio.h>
 #include <stdint.h>

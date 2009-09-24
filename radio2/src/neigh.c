@@ -1,11 +1,9 @@
-// $Id: neigh.c,v 1.1 2009-09-24 00:21:15 nick Exp $
+// $Id: neigh.c,v 1.2 2009-09-24 03:01:34 nick Exp $
 
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 
-#include "vtime.h"
-#include "loc.h"
 #include "neigh.h"
 
 void neigh_tab_insert(neigh_tab_t *neigh_tab, vtime_t vtime, neigh_t *neigh) {
@@ -21,3 +19,5 @@ void neigh_tab_cull(neigh_tab_t *neigh_tab, vtime_t vtime) {
         }
     }
 }
+
+energy_t neigh_tab_energy()
