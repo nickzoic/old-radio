@@ -1,4 +1,7 @@
-// $Id: beacon.h,v 1.1 2009-09-24 00:21:13 nick Exp $
+// $Id: beacon.h,v 1.2 2009-09-24 10:43:24 nick Exp $
+
+#ifndef _BEACON_H
+#define _BEACON_H
 
 typedef struct beacon_s {
     
@@ -7,3 +10,4 @@ typedef struct beacon_s {
     
 } beacon_t;
 
+#endif

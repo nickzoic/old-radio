@@ -1,7 +1,13 @@
-// $Id: node.h,v 1.2 2009-09-24 03:01:35 nick Exp $
+// $Id: node.h,v 1.3 2009-09-24 10:43:25 nick Exp $
 
 #ifndef _NODE_H
 #define _NODE_H
+
+#include <stdint.h>
+
+#include "vtime.h"
+#include "beacon.h"
+#include "neigh.h"
 
 typedef struct node_s {
     

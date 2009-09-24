@@ -1,15 +1,9 @@
-// $Id: event.c,v 1.1 2009-09-24 00:21:14 nick Exp $
+// $Id: event.c,v 1.2 2009-09-24 10:43:24 nick Exp $
 // Event queue: implements a simple Heap Queue for keeping events in time order
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
-#include "vtime.h"
-#include "loc.h"
-#include "beacon.h"
-#include "neigh.h"
-#include "node.h"
 #include "event.h"
 
 // PRIVATE

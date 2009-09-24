@@ -1,13 +1,7 @@
-// $Id: node.c,v 1.1 2009-09-24 00:21:16 nick Exp $
+// $Id: node.c,v 1.2 2009-09-24 10:43:25 nick Exp $
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
-#include "loc.h"
-#include "vtime.h"
-#include "beacon.h"
-#include "neigh.h"
 #include "node.h"
 
 node_t *node_new(int id) {

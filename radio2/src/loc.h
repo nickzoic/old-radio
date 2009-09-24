@@ -1,7 +1,9 @@
-// $Id: loc.h,v 1.2 2009-09-24 03:01:34 nick Exp $
+// $Id: loc.h,v 1.3 2009-09-24 10:43:25 nick Exp $
 
 #ifndef _LOC_H
 #define _LOC_H
+
+#include <stdio.h>
 
 typedef int16_t locx_t;
 

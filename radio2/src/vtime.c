@@ -1,4 +1,7 @@
-// $Id: vtime.c,v 1.2 2009-09-24 00:26:43 nick Exp $
+// $Id: vtime.c,v 1.3 2009-09-24 10:43:25 nick Exp $
+
+// vtime provides a clock which will work in either the simulator (where vtime
+// is used as the key of a priority queue) or in real time.
 
 #include <stdint.h>
 #include "vtime.h"
