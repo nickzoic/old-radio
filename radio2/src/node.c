@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.4 2009-10-07 21:46:43 nick Exp $
+// $Id: node.c,v 1.5 2009-10-07 22:06:15 nick Exp $
 
 #include <stdlib.h>
 
@@ -15,16 +15,20 @@ void node_set_status(node_t *node, vtime_t vtime, int status) {
     printf(VTIME_FORMAT " %d S %d\n", vtime, node->id, status);
 }
 
-void node_event(node_t *node, vtime_t vtime, beacon_t *beacon) {
-    if (beacon) {
-        // beacon received event
-        
-    } else {
-        node_recalc();
-        
-        // timer event
-        
-    }
+void node_register_sender(node_t *node, void (*sender_func)(node_t *, packet_t *)) {
+    node->sender_func = sender_func;
+}
+
+void node_register_timer(node_t *node, void (*timer_func)(node_t *, vtime_t)) {
+    node->timer_func = timer_func;
+}
+
+void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
+    
+}
+
+void node_timer(node_t *node, vtime_t vtime) {
+    
 }
 
 void node_free(node_t *node) {
