@@ -1,15 +1,10 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <assert.h>
 
-#include "vtime.h"
-#include "loc.h"
-#include "beacon.h"
-#include "neigh.h"
-#include "node.h"
 #include "event.h"
 
-#define N_TEST (1000000L)
+#define N_TEST (10000000L)
 
 int main() {
     
@@ -21,27 +16,19 @@ int main() {
         event_insert(ee);
     }
     
-    event_heap_print(5);
-    
     vtime_t vtime = 0;
     for (int i=0; i<N_TEST; i++) {
         event_t ee = event_pop();
-        if (ee.vtime == VTIME_INF) {
-            fputs("STACK UNDERFLOW!\n", stderr);
-            return 1;
-        }
-        if (ee.vtime < vtime) {
-            fputs("TIME OUT OF JOINT!\n", stderr);
-            return 2;
-        }
+        
+        assert(ee.vtime != VTIME_INF);
+        assert(ee.vtime >= vtime);
+        
         vtime = ee.vtime;
     }
     
     event_t ee = event_pop();
-    if (ee.vtime != VTIME_INF) {
-        fputs("STACK OVERFLOW!\n", stderr);
-        return 3;
-    }
+    
+    assert(ee.vtime == VTIME_INF);
     
     event_destroy();
     

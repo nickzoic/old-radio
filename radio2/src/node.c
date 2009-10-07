@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.2 2009-09-24 10:43:25 nick Exp $
+// $Id: node.c,v 1.3 2009-10-07 18:50:39 nick Exp $
 
 #include <stdlib.h>
 
@@ -15,6 +15,8 @@ void node_event(node_t *node, vtime_t vtime, beacon_t *beacon) {
         // beacon received event
         
     } else {
+        node_recalc();
+        
         // timer event
         
     }
