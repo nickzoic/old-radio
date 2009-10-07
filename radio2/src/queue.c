@@ -1,8 +1,5 @@
-// $Id: queue.c,v 1.1 2009-10-07 18:50:39 nick Exp $
+// $Id: queue.c,v 1.2 2009-10-07 21:25:54 nick Exp $
 // queue: implements a simple Heap Queue for keeping queue_events in time order
-// This is used by the event-driven simulator code as the core event queue but
-// also by the 'real' nodes as a 'what do I do next' queue.
-
 // It is implemented as an automatically resizing heap queue.
 
 #include <stdlib.h>
