@@ -1,4 +1,4 @@
-// $Id: node.h,v 1.6 2009-10-07 22:06:15 nick Exp $
+// $Id: node.h,v 1.7 2009-10-07 23:21:14 nick Exp $
 
 #ifndef _NODE_H
 #define _NODE_H
@@ -19,16 +19,18 @@ typedef struct node_s {
     int id;
     int status;
     
-    void (*sender_func)(struct node_s *, packet_t *);
-    void (*timer_func)(struct node_s *, vtime_t);
+    vtime_t flood_timeout;
+    
+    void (*sender)(struct node_s *, packet_t *);
+    void (*timer)(struct node_s *, vtime_t);
     
 } node_t;
 
 node_t *node_new(int id);
 void node_set_status(node_t *node, vtime_t vtime, int status);
 
-void node_register_sender(node_t *node, void (*sender_func)(node_t *, packet_t *));
-void node_register_timer(node_t *node, void (*timer_func)(node_t *, vtime_t));
+void node_register_sender(node_t *node, void (*sender)(node_t *, packet_t *));
+void node_register_timer(node_t *node, void (*timer)(node_t *, vtime_t));
 
 void node_receive(node_t *node, vtime_t vtime, packet_t *packet);
 void node_timer(node_t *node, vtime_t vtime);

@@ -1,4 +1,4 @@
-// $Id: packet.h,v 1.2 2009-10-07 21:21:17 nick Exp $
+// $Id: packet.h,v 1.3 2009-10-07 23:21:14 nick Exp $
 
 #ifndef _PACKET_H
 #define _PACKET_H
@@ -15,5 +15,9 @@ packet_t *packet_new(size_t length, void *data);
 packet_t *packet_copy(packet_t *p);
 packet_t *packet_clone(packet_t *p);
 void packet_free(packet_t *p);
+
+#define PACKET_TYPE_BEACON (0xBE)
+#define PACKET_TYPE_FLOOD (0xF0)
+#define PACKET_TYPE_DATA (0xDA)
 
 #endif
