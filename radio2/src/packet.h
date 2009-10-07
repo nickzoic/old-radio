@@ -1,4 +1,4 @@
-// $Id: packet.h,v 1.1 2009-10-07 21:18:05 nick Exp $
+// $Id: packet.h,v 1.2 2009-10-07 21:21:17 nick Exp $
 
 #ifndef _PACKET_H
 #define _PACKET_H
@@ -7,6 +7,7 @@
 
 typedef struct packet_s {
     size_t length;
+    size_t refcount;
     unsigned char *data;
 } packet_t;
 
