@@ -1,4 +1,4 @@
-// $Id: vtime.c,v 1.3 2009-09-24 10:43:25 nick Exp $
+// $Id: vtime.c,v 1.4 2009-10-07 21:46:43 nick Exp $
 
 // vtime provides a clock which will work in either the simulator (where vtime
 // is used as the key of a priority queue) or in real time.
@@ -17,17 +17,24 @@ vtime_t vtime_from_wall() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     
-    return (tv.tv_sec - VTIME_EPOCH) * 1000000LL + tv.tv_usec;
+    return (tv.tv_sec - VTIME_EPOCH) * VTIME_SECONDS + tv.tv_usec;
 }
+
+
+// Really unneccessary unless I try to port this to some 16-bit horror
 
 vtime_t vtime_zero() {
     return 0;
 }
 
 vtime_t vtime_add_s(vtime_t vtime, int s) {
-    return vtime + s * 1000000L;
+    return vtime + s * VTIME_SECONDS;
 }
 
 vtime_t vtime_add_ms(vtime_t vtime, int ms) {
-    return vtime + ms * 1000;
+    return vtime + ms * VTIME_MILLIS;
+}
+
+vtime_t vtime_add_us(vtime_t vtime, int us) {
+    return vtime = us * VTIME_MICROS;
 }

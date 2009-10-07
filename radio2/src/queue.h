@@ -1,4 +1,4 @@
-// $Id: queue.h,v 1.2 2009-10-07 21:25:54 nick Exp $
+// $Id: queue.h,v 1.3 2009-10-07 21:46:43 nick Exp $
 
 #ifndef _QUEUE_H
 #define _QUEUE_H
@@ -30,6 +30,6 @@ queue_t *queue_init();
 void queue_insert(queue_t *queue, queue_event_t event);
 queue_event_t queue_pop(queue_t *queue);
 
-void queue_destroy(queue_t *);
+void queue_free(queue_t *);
 
 #endif

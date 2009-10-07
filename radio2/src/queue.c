@@ -1,4 +1,4 @@
-// $Id: queue.c,v 1.2 2009-10-07 21:25:54 nick Exp $
+// $Id: queue.c,v 1.3 2009-10-07 21:46:43 nick Exp $
 // queue: implements a simple Heap Queue for keeping queue_events in time order
 // It is implemented as an automatically resizing heap queue.
 
@@ -97,7 +97,7 @@ queue_event_t queue_pop(queue_t *queue) {
     return e;
 }
 
-void queue_destroy(queue_t *queue) {
+void queue_free(queue_t *queue) {
     free(queue->events);
     free(queue);
 }
