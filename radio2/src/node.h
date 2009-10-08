@@ -1,4 +1,4 @@
-// $Id: node.h,v 1.8 2009-10-08 00:01:44 nick Exp $
+// $Id: node.h,v 1.9 2009-10-08 02:26:54 nick Exp $
 
 #ifndef _NODE_H
 #define _NODE_H
@@ -17,9 +17,12 @@
 
 #define NODE_MAX_NEIGH (30)
 
+typedef uint16_t node_id_t;
+typedef uint8_t node_stratum_t;
+
 typedef struct node_s {
     
-    int id;
+    node_id_t id;
     int status;
     
     neigh_table_t neigh_table;
@@ -31,7 +34,7 @@ typedef struct node_s {
     
 } node_t;
 
-node_t *node_new(int id);
+node_t *node_new(node_id_t id);
 void node_set_status(node_t *node, vtime_t vtime, int status);
 
 void node_register_sender(node_t *node, void (*sender)(node_t *, packet_t *));

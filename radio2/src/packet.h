@@ -1,9 +1,12 @@
-// $Id: packet.h,v 1.4 2009-10-08 00:01:45 nick Exp $
+// $Id: packet.h,v 1.5 2009-10-08 02:26:54 nick Exp $
 
 #ifndef _PACKET_H
 #define _PACKET_H
 
 #include <stdlib.h>
+#include <stdint.h>
+
+#include "loc.h"
 
 typedef struct packet_s {
     size_t length;
@@ -21,9 +24,9 @@ void packet_free(packet_t *p);
 #define PACKET_TYPE_DATA (0xDA)
 
 typedef struct packet_neigh_s {
+    uint16_t id;
     unsigned char stratum;
-    
-    
+    loc_t loc;
 } __attribute__((__packed__)) packet_neigh_t;
 
 #endif

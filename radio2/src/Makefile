@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2009-10-07 22:06:15 nick Exp $
+# $Id: Makefile,v 1.6 2009-10-08 02:26:53 nick Exp $
 
 CC=gcc
 CFLAGS=-Wall -std=c99 -fgnu89-inline -O6 -pg
@@ -23,9 +23,8 @@ queue.o: queue.c queue.h vtime.h node.h packet.h
 
 node.o: node.c node.h neigh.h loc.h vtime.h packet.h
 
-
+neigh.o: neigh.c neigh.h loc.h vtime.h
 
 energy.o: energy.c energy.h loc.h
 
-neigh.o: neigh.c neigh.h loc.h vtime.h
 
