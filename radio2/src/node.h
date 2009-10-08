@@ -1,10 +1,11 @@
-// $Id: node.h,v 1.7 2009-10-07 23:21:14 nick Exp $
+// $Id: node.h,v 1.8 2009-10-08 00:01:44 nick Exp $
 
 #ifndef _NODE_H
 #define _NODE_H
 
 #include <stdint.h>
 
+#include "loc.h"
 #include "vtime.h"
 #include "packet.h"
 #include "neigh.h"
@@ -14,10 +15,14 @@
 #define NODE_STATUS_AWAKE (2)
 #define NODE_STATUS_ROOT (9)
 
+#define NODE_MAX_NEIGH (30)
+
 typedef struct node_s {
     
     int id;
     int status;
+    
+    neigh_table_t neigh_table;
     
     vtime_t flood_timeout;
     

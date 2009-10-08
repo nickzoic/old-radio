@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.6 2009-10-07 23:21:14 nick Exp $
+// $Id: node.c,v 1.7 2009-10-08 00:01:44 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,10 +30,6 @@ void node_register_timer(node_t *node, void (*timer)(node_t *, vtime_t)) {
     node->timer = timer;
 }
 
-void node_neighbour(node_t *node, vtime_t vtime, neigh_t neigh) {
-    
-}
-
 void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
     switch (packet->data[0]) {
         case PACKET_TYPE_BEACON:
@@ -43,7 +39,7 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
             int nneigh = (packet->length - 1) / sizeof(neigh_t);
             assert( (packet->length - 1) % sizeof(neigh_t) == 0 );
             for (int i=0; i<nneigh; i++) {
-                node_neighbour(node, vtime, neighs[i]);
+                neigh_table_insert(&(node->neigh_table), vtime, &neighs[i]);
             }
           break;
         case PACKET_TYPE_FLOOD:

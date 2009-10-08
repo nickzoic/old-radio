@@ -1,4 +1,4 @@
-// $Id: loc.h,v 1.3 2009-09-24 10:43:25 nick Exp $
+// $Id: loc.h,v 1.4 2009-10-08 00:01:44 nick Exp $
 
 #ifndef _LOC_H
 #define _LOC_H
@@ -9,7 +9,7 @@ typedef int16_t locx_t;
 
 typedef struct loc_s {
     locx_t x, y, z;
-} loc_t;
+} __attribute__((__packed__)) loc_t;
 
 unsigned long loc_dist2(loc_t *a, loc_t *b);
 double loc_dist(loc_t *a, loc_t *b);

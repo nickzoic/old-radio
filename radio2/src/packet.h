@@ -1,4 +1,4 @@
-// $Id: packet.h,v 1.3 2009-10-07 23:21:14 nick Exp $
+// $Id: packet.h,v 1.4 2009-10-08 00:01:45 nick Exp $
 
 #ifndef _PACKET_H
 #define _PACKET_H
@@ -19,5 +19,11 @@ void packet_free(packet_t *p);
 #define PACKET_TYPE_BEACON (0xBE)
 #define PACKET_TYPE_FLOOD (0xF0)
 #define PACKET_TYPE_DATA (0xDA)
+
+typedef struct packet_neigh_s {
+    unsigned char stratum;
+    
+    
+} __attribute__((__packed__)) packet_neigh_t;
 
 #endif
