@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.8 2009-10-08 02:26:54 nick Exp $
+// $Id: node.c,v 1.9 2009-10-09 10:00:13 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,11 +35,13 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
         case PACKET_TYPE_BEACON:
             if (node->status == NODE_STATUS_ASLEEP)
                 node->status = NODE_STATUS_WAKING;
-            packet_neigh_t *nn = (packet_neigh_t *)(packet->data+1);
-            int nneigh = (packet->length - 1) / sizeof(packet_neigh_t);
-            assert( (packet->length - 1) % sizeof(packet_neigh_t) == 0 );
+            neigh_t *nn = (neigh_t *)(packet->data+1);
+            int nneigh = (packet->length - 1) / sizeof(neigh_t);
+            assert( (packet->length - 1) % sizeof(neigh_t) == 0 );
             for (int i=0; i<nneigh; i++) {
-                neigh_table_insert(&(node->neigh_table), nn[i].id, nn[i].stratum+1, nn[i].loc, vtime);
+                printf(VTIME_FORMAT " %d N %d %d %d %d %d\n",
+                       vtime, node->id, nn[i].id, nn[i].stratum, nn[i].loc.x, nn[i].loc.y, nn[i].loc.z);
+                neigh_table_insert(&(node->neigh_table), nn[i], vtime);
             }
           break;
         case PACKET_TYPE_FLOOD:

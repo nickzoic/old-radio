@@ -1,4 +1,4 @@
-// $Id: node.h,v 1.9 2009-10-08 02:26:54 nick Exp $
+// $Id: node.h,v 1.10 2009-10-09 10:00:13 nick Exp $
 
 #ifndef _NODE_H
 #define _NODE_H
@@ -17,8 +17,8 @@
 
 #define NODE_MAX_NEIGH (30)
 
-typedef uint16_t node_id_t;
-typedef uint8_t node_stratum_t;
+typedef neigh_id_t node_id_t;
+typedef neigh_stratum_t node_stratum_t;
 
 typedef struct node_s {
     

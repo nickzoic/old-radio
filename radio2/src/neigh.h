@@ -1,4 +1,4 @@
-// $Id: neigh.h,v 1.6 2009-10-08 02:26:53 nick Exp $
+// $Id: neigh.h,v 1.7 2009-10-09 10:00:13 nick Exp $
 
 #ifndef _NEIGH_H
 #define _NEIGH_H
@@ -19,14 +19,17 @@ typedef struct neigh_s {
     neigh_id_t id;
     neigh_stratum_t stratum;
     loc_t loc;
-    vtime_t vtime;
-} neigh_t;
+} __attribute__((__packed__)) neigh_t;
+
+typedef struct neigh_entry_s {
+    neigh_t neigh;
+    vtime_t expiry;
+} neigh_entry_t;
 
 typedef struct neigh_table_s {
-    neigh_t table[NEIGH_ID_MAX];
+    neigh_entry_t table[NEIGH_ID_MAX+1];
 } neigh_table_t;
 
-void neigh_table_insert(neigh_table_t *neigh_table, neigh_id_t id,
-        neigh_stratum_t stratum, loc_t loc, vtime_t vtime);
+void neigh_table_insert(neigh_table_t *neigh_table, neigh_t neigh, vtime_t vtime);
 
 #endif

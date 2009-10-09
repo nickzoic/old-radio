@@ -1,24 +1,39 @@
-// $Id: neigh.c,v 1.6 2009-10-08 02:26:53 nick Exp $
+// $Id: neigh.c,v 1.7 2009-10-09 10:00:13 nick Exp $
 
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <assert.h>
 
 #include "neigh.h"
 
-int neigh_more_important(neigh_t *a, neigh_t *b, vtime_t expiry) {
-    if (b->vtime > expiry) return 1;
-    if (a->stratum < b->stratum) return 1;
-    if (a->vtime > b->vtime) return 1;
-    return 0;
+void neigh_table_insert(neigh_table_t *neigh_table, neigh_t neigh, vtime_t vtime) {
+    assert(neigh.id <= NEIGH_ID_MAX);
+    neigh_entry_t *entry = &(neigh_table->table[neigh.id]);
+    
+    if ( (entry->expiry < vtime) || (entry->neigh.stratum > neigh.stratum) ) {
+        entry->neigh = neigh;
+        entry->expiry = vtime_add_ms(vtime, NEIGH_EXPIRY_TIMEOUT_MS);
+    }    
 }
 
-void neigh_table_insert(neigh_table_t *neigh_table, neigh_id_t id,
-                neigh_stratum_t stratum, loc_t loc, vtime_t vtime) {
- 
-    neigh_t nn = { id, stratum, loc, vtime };
-    
-    if (neigh_more_important(&nn, &neigh_table->table[id], vtime_add_ms(vtime, NEIGH_EXPIRY_TIMEOUT_MS))) {
-        neigh_table->table[id] = nn;
+void *neigh_table_foreach(neigh_table_t *neigh_table, void *(*func)(neigh_t neigh, void *data), void *data) {
+    for (int i=0; i <= NEIGH_ID_MAX; i++) {
+        data = func(neigh_table->table[i].neigh, data);
     }
+    return data;
 }
+
+void neigh_table_export(neigh_table_t *neigh_table, size_t maxsize) {
+    for 
+}
+/*neigh_entry_t *neigh_table_iterate(neigh_table_t *neigh_table) {
+    return neigh_table->table;
+}
+
+neigh_entry_t *neigh_table_iterate_next(neigh_table_t *neigh_table, neigh_entry *neigh_entry) {
+    neigh_entry++;
+    if (neigh_entry > neigh_table->table + NEIGH_ID_MAX) return NULL;
+    return neigh_entry;
+}*/
+
