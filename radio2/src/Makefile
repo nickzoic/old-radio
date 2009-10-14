@@ -1,17 +1,21 @@
-# $Id: Makefile,v 1.7 2009-10-09 10:00:13 nick Exp $
+# $Id: Makefile,v 1.8 2009-10-14 05:31:16 nick Exp $
 
 CC=gcc
 CFLAGS=-Wall -std=c99 -fgnu89-inline -O6 -pg
 LDFLAGS=-lm -pg
 
-OBJECTS=vtime.o loc.o packet.o queue.o node.o neigh.o
-#OLDOBJECTS=energy.o neigh.o beacon.o
+OBJECTS_BOTH=vtime.o loc.o packet.o node.o neigh.o
+OBJECTS_SIM=topo.o sim.o queue.o
+OBJECTS_USB=
+OBJECTS_ALL=$(OBJECTS_BOTH) $(OBJECTS_SIM) $(OBJECTS_USB)
 
-all: $(OBJECTS)
+all: sim
 
 clean:
-	rm $(OBJECTS)
-    
+	rm $(OBJECTS_ALL)
+
+sim: $(OBJECTS_BOTH) $(OBJECTS_SIM)
+
 
 vtime.o: vtime.c vtime.h
 
@@ -27,4 +31,5 @@ neigh.o: neigh.c neigh.h loc.h vtime.h
 
 energy.o: energy.c energy.h loc.h
 
+topo.o: topo.c topo.h node.h
 

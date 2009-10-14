@@ -1,4 +1,4 @@
-// $Id: neigh.c,v 1.7 2009-10-09 10:00:13 nick Exp $
+// $Id: neigh.c,v 1.8 2009-10-14 05:31:16 nick Exp $
 
 #include <stdio.h>
 #include <stdint.h>
@@ -24,9 +24,6 @@ void *neigh_table_foreach(neigh_table_t *neigh_table, void *(*func)(neigh_t neig
     return data;
 }
 
-void neigh_table_export(neigh_table_t *neigh_table, size_t maxsize) {
-    for 
-}
 /*neigh_entry_t *neigh_table_iterate(neigh_table_t *neigh_table) {
     return neigh_table->table;
 }

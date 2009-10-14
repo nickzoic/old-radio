@@ -1,4 +1,4 @@
-// $Id: queue.h,v 1.3 2009-10-07 21:46:43 nick Exp $
+// $Id: queue.h,v 1.4 2009-10-14 05:31:17 nick Exp $
 
 #ifndef _QUEUE_H
 #define _QUEUE_H
@@ -25,7 +25,8 @@ typedef struct queue_s {
 } queue_t;
 
 
-queue_t *queue_init();
+queue_t *queue_new();
+void queue_set_eschaton(queue_t *queue, vtime_t eschaton);
 
 void queue_insert(queue_t *queue, queue_event_t event);
 queue_event_t queue_pop(queue_t *queue);

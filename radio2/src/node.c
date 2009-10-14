@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.9 2009-10-09 10:00:13 nick Exp $
+// $Id: node.c,v 1.10 2009-10-14 05:31:16 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,12 +9,21 @@
 #define NODE_FLOOD_TIMEOUT_MS (1000)
 #define NODE_BEACON_PERIOD_MS (1000)
 
+// this callback hook lets different frontends call the same node class
+// without too much pain.
+
+void (*Node_callback)(node_t *, vtime_t, packet_t *) = NULL;
+
 // PUBLIC
 
+void node_init(node_t *node, node_id_t id) {
+    node->id = id;
+}
+
 node_t *node_new(node_id_t id) {
-    node_t *n = calloc(1,sizeof(node_t));
-    n->id = id;
-    return n;
+    node_t *node = calloc(1,sizeof(node_t));
+    node_init(node, id);
+    return node;
 }
 
 void node_set_status(node_t *node, vtime_t vtime, int status) {
@@ -22,16 +31,16 @@ void node_set_status(node_t *node, vtime_t vtime, int status) {
     printf(VTIME_FORMAT " %d S %d\n", vtime, node->id, status);
 }
 
-void node_register_sender(node_t *node, void (*sender)(node_t *, packet_t *)) {
-    node->sender = sender;
-}
-
-void node_register_timer(node_t *node, void (*timer)(node_t *, vtime_t)) {
-    node->timer = timer;
+void node_register_callback(void (*callback)(node_t *, vtime_t, packet_t *)) {
+    Node_callback = callback;
 }
 
 void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
+    assert(node);
+    assert(packet);
+    
     switch (packet->data[0]) {
+        
         case PACKET_TYPE_BEACON:
             if (node->status == NODE_STATUS_ASLEEP)
                 node->status = NODE_STATUS_WAKING;
@@ -44,25 +53,39 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
                 neigh_table_insert(&(node->neigh_table), nn[i], vtime);
             }
           break;
+        
         case PACKET_TYPE_FLOOD:
+            assert(Node_callback);
+            
             if (vtime > node->flood_timeout) {
-                printf(VTIME_FORMAT " %d F %.*s\n", vtime, node->id, (packet->length)-1, (packet->data)+1);
-                node->sender(node, packet);
+                printf(VTIME_FORMAT " %d F %.*s\n", vtime, node->id, (int)(packet->length)-1, (packet->data)+1);
+                Node_callback(node, vtime, packet);
                 node->flood_timeout = vtime_add_ms(vtime, NODE_FLOOD_TIMEOUT_MS);
             }
           break;
+        
         default:
             printf(VTIME_FORMAT " %d W Unknown packet type %02X length %d",
-                   vtime, node->id, packet->data[0], packet->length);
+                   vtime, node->id, packet->data[0], (int)packet->length);
           break;
     }
 }
 
 void node_timer(node_t *node, vtime_t vtime) {
-    packet_t *p = packet_new(6, "hello");
+    assert(node);
+    assert(Node_callback);
     
-    node->sender(node, p);
-    node->timer(node, vtime_add_ms(vtime, NODE_BEACON_PERIOD_MS));
+    printf(VTIME_FORMAT " %d T\n", vtime, node->id);
+    
+    char s[200];
+    sprintf(s, "\xF0hello" VTIME_FORMAT "!", vtime);
+    
+    packet_t *p = packet_new(sizeof(s), s);
+    
+    Node_callback(node, vtime, p);
+    Node_callback(node, vtime_add_ms(vtime, NODE_BEACON_PERIOD_MS), NULL);
+
+    packet_free(p);
 }
 
 void node_free(node_t *node) {

@@ -1,4 +1,4 @@
-// $Id: vtime.c,v 1.4 2009-10-07 21:46:43 nick Exp $
+// $Id: vtime.c,v 1.5 2009-10-14 05:31:18 nick Exp $
 
 // vtime provides a clock which will work in either the simulator (where vtime
 // is used as the key of a priority queue) or in real time.
@@ -36,5 +36,5 @@ vtime_t vtime_add_ms(vtime_t vtime, int ms) {
 }
 
 vtime_t vtime_add_us(vtime_t vtime, int us) {
-    return vtime = us * VTIME_MICROS;
+    return vtime + us * VTIME_MICROS;
 }
