@@ -1,21 +1,27 @@
-# $Id: Makefile,v 1.8 2009-10-14 05:31:16 nick Exp $
+# $Id: Makefile,v 1.9 2009-10-14 07:08:00 nick Exp $
 
 CC=gcc
-CFLAGS=-Wall -std=c99 -fgnu89-inline -O6 -pg
+#CFLAGS=-Wall -std=c99 -pg
+CFLAGS=-Wall -std=c99 -O6
 LDFLAGS=-lm -pg
 
 OBJECTS_BOTH=vtime.o loc.o packet.o node.o neigh.o
 OBJECTS_SIM=topo.o sim.o queue.o
-OBJECTS_USB=
-OBJECTS_ALL=$(OBJECTS_BOTH) $(OBJECTS_SIM) $(OBJECTS_USB)
+OBJECTS_RADIO=radio.o
 
-all: sim
+all: sim radio
 
+test: queue_test
+	./queue_test && echo "PASS"
+    
 clean:
-	rm $(OBJECTS_ALL)
+	rm $(OBJECTS_BOTH) $(OBJECTS_SIM) $(OBJECTS_RADIO)
 
 sim: $(OBJECTS_BOTH) $(OBJECTS_SIM)
 
+radio: $(OBJECTS_BOTH) $(OBJECTS_RADIO)
+
+queue_test: queue_test.o queue.o
 
 vtime.o: vtime.c vtime.h
 

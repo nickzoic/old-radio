@@ -1,11 +1,11 @@
-// $Id: topo.c,v 1.1 2009-10-14 05:31:17 nick Exp $
+// $Id: topo.c,v 1.2 2009-10-14 07:08:01 nick Exp $
 
 #include <assert.h>
 
 #include "topo.h"
 
-#define TOPO_TABLESIZE (10000)
-#define TOPO_TABLEOFFS (10)
+#define TOPO_TABLESIZE (30000)
+#define TOPO_TABLEOFFS (30)
 #define TOPO_MAXENTRIES (9000)
 
 topo_t *topo_new() {
@@ -64,11 +64,11 @@ topo_iter_t *topo_iter_new(topo_t *topo, node_id_t src) {
 }
 
 topo_entry_t *topo_iter_next(topo_iter_t *iter) {
-    while(1) {
+    while (1) {
         topo_entry_t *entry = &(iter->topo->table[iter->offs]);
         if (entry->src == entry->dst) return NULL;
         iter->offs = (iter->offs + 1) % TOPO_TABLESIZE;
-        if (entry->src == iter->src) return entry; 
+        if (entry->src == iter->src) return entry;
     }
 }
 

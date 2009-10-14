@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.10 2009-10-14 05:31:16 nick Exp $
+// $Id: node.c,v 1.11 2009-10-14 07:08:00 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +28,7 @@ node_t *node_new(node_id_t id) {
 
 void node_set_status(node_t *node, vtime_t vtime, int status) {
     node->status = status;
-    printf(VTIME_FORMAT " %d S %d\n", vtime, node->id, status);
+    printf(VTIME_FORMAT " %6d S %d\n", vtime, node->id, status);
 }
 
 void node_register_callback(void (*callback)(node_t *, vtime_t, packet_t *)) {
@@ -48,7 +48,7 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
             int nneigh = (packet->length - 1) / sizeof(neigh_t);
             assert( (packet->length - 1) % sizeof(neigh_t) == 0 );
             for (int i=0; i<nneigh; i++) {
-                printf(VTIME_FORMAT " %d N %d %d %d %d %d\n",
+                printf(VTIME_FORMAT " %6d N %d %d %d %d %d\n",
                        vtime, node->id, nn[i].id, nn[i].stratum, nn[i].loc.x, nn[i].loc.y, nn[i].loc.z);
                 neigh_table_insert(&(node->neigh_table), nn[i], vtime);
             }
@@ -58,14 +58,14 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
             assert(Node_callback);
             
             if (vtime > node->flood_timeout) {
-                printf(VTIME_FORMAT " %d F %.*s\n", vtime, node->id, (int)(packet->length)-1, (packet->data)+1);
+                printf(VTIME_FORMAT " %6d F %.*s\n", vtime, node->id, (int)(packet->length)-1, (packet->data)+1);
                 Node_callback(node, vtime, packet);
                 node->flood_timeout = vtime_add_ms(vtime, NODE_FLOOD_TIMEOUT_MS);
             }
           break;
         
         default:
-            printf(VTIME_FORMAT " %d W Unknown packet type %02X length %d",
+            printf(VTIME_FORMAT " %6d W Unknown packet type %02X length %d",
                    vtime, node->id, packet->data[0], (int)packet->length);
           break;
     }
@@ -75,7 +75,7 @@ void node_timer(node_t *node, vtime_t vtime) {
     assert(node);
     assert(Node_callback);
     
-    printf(VTIME_FORMAT " %d T\n", vtime, node->id);
+    printf(VTIME_FORMAT " %6d T\n", vtime, node->id);
     
     char s[200];
     sprintf(s, "\xF0hello" VTIME_FORMAT "!", vtime);

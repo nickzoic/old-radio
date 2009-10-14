@@ -22,8 +22,8 @@ topo_t *Topo;
 
 vtime_t sim_prop_delay(vtime_t vtime, packet_t *packet) {
     long delay_us = SIM_PROP_DELAY_US + SIM_PROP_DELAY_PERBYTE_US * packet->length;
-    if (delay_us < SIM_PROP_DELAY_MIN_US) delay_us = SIM_PROP_DELAY_MIN_US;
     delay_us += rand() % SIM_PROP_DELAY_FUZZ_US;
+    if (delay_us < SIM_PROP_DELAY_MIN_US) delay_us = SIM_PROP_DELAY_MIN_US;
     return vtime_add_us(vtime, delay_us);
 }
 
