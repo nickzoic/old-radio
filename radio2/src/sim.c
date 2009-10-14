@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     // Initialize the queue.  If there's a timeout specified, tell the queue
     // to ignore events after this time.
     Queue = queue_new();
-    if (argc == 3) {
+    if (argc >= 3) {
         vtime_t timeout = vtime_add_s(vtime_zero(), atoi(argv[2]));
         queue_set_eschaton(Queue, timeout);
     }
