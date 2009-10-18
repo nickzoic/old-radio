@@ -1,4 +1,4 @@
-// $Id: topo.c,v 1.2 2009-10-14 07:08:01 nick Exp $
+// $Id: topo.c,v 1.3 2009-10-18 10:06:02 nick Exp $
 
 #include <assert.h>
 
@@ -53,7 +53,6 @@ void topo_free(topo_t *topo) {
     free(topo->table);
     free(topo);
 }
-
 
 topo_iter_t *topo_iter_new(topo_t *topo, node_id_t src) {
     topo_iter_t *iter = (topo_iter_t *)malloc(sizeof(topo_iter_t));
