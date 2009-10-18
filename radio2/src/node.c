@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.13 2009-10-18 07:31:22 nick Exp $
+// $Id: node.c,v 1.14 2009-10-18 09:09:33 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -77,7 +77,7 @@ void node_timer(node_t *node, vtime_t vtime) {
     
     printf(VTIME_FORMAT " %6d T\n", vtime, node->id);
     
-    char s[200];
+    char s[200] = {0};
     sprintf(s, "\xF0hello" VTIME_FORMAT "!", vtime);
     
     packet_t *p = packet_new(sizeof(s), s);

@@ -1,11 +1,11 @@
-# $Id: Makefile,v 1.13 2009-10-18 07:31:22 nick Exp $
+# $Id: Makefile,v 1.14 2009-10-18 09:09:33 nick Exp $
 
 CC=gcc
 
-#CFLAGS=-Wall -std=gnu99 -pg
+#CFLAGS=-Wall -std=gnu99 -g -pg
 #LDFLAGS=-lm -pg
 
-CFLAGS=-Wall -std=gnu99 -O6
+CFLAGS=-Wall -std=gnu99 -O2 -g
 LDFLAGS=-lm
 
 OBJECTS_BOTH=vtime.o loc.o packet.o node.o neigh.o

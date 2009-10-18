@@ -68,6 +68,7 @@ int main(int argc, char *argv[]) {
     Topo = topo_new();
     FILE *fp = fopen(argv[1], "r");
     topo_file_read(Topo, fp);
+    fclose(fp);
     
     // Initialize the queue.  If there's a timeout specified, tell the queue
     // to ignore events after this time.
@@ -80,7 +81,7 @@ int main(int argc, char *argv[]) {
     // allocate node table & initialize all the nodes
     N_nodes = topo_max_id(Topo)+1;
     Nodes = (node_t *)calloc(N_nodes, sizeof(node_t));
-    for (int i=0; i <= N_nodes; i++) {
+    for (int i=0; i < N_nodes; i++) {
         node_init(&Nodes[i], i);    
     }
     
@@ -101,7 +102,9 @@ int main(int argc, char *argv[]) {
             node_timer(e.node, e.vtime);
         }
     }
-    
+
+    free(Nodes);
+    topo_free(Topo);    
     queue_free(Queue);
     return 0;
 }
