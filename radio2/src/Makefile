@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.12 2009-10-18 05:54:44 nick Exp $
+# $Id: Makefile,v 1.13 2009-10-18 07:31:22 nick Exp $
 
 CC=gcc
 
@@ -15,10 +15,13 @@ OBJECTS_SERIAL=serial.o radio.o crc.o symbols.o
 all: sim serial
 
 test: queue_test symbols_test crc_test
-	./queue_test && ./symbols_test && ./crc_test && echo "PASS"
+	./queue_test
+	./symbols_test
+	./crc_test
     
 clean:
 	rm $(OBJECTS_BOTH) $(OBJECTS_SIM) $(OBJECTS_SERIAL)
+
 
 sim: $(OBJECTS_BOTH) $(OBJECTS_SIM)
 

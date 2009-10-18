@@ -1,4 +1,4 @@
-// $Id: radio.c,v 1.3 2009-10-18 05:28:07 nick Exp $
+// $Id: radio.c,v 1.4 2009-10-18 07:31:22 nick Exp $
 
 // This handles the lowest level of the protocol stack: encoding bytes into
 // symbols and pushing them out the serial port.  It doesn't do much in the
@@ -72,7 +72,7 @@ void radio_send(radio_t *radio, packet_t *packet) {
     static unsigned char packet_buffer[RADIO_MTU + CRC16_LEN];
     static unsigned char send_buffer[MAX_FRAME];
     
-    memcpy(packet->data, packet_buffer, packet->length);
+    memcpy(packet_buffer, packet->data, packet->length);
     crc16_set(packet_buffer, packet->length + CRC16_LEN);
     
     // Create packet w/ Preamble, Sync, Data, Epilogue
@@ -105,10 +105,13 @@ int radio_wait(radio_t *radio, vtime_t timeout) {
     // read symbols until we find a Symbol_Start or we timeout.
     
     do {
-        int timeout_ms = (timeout - vtime_from_wall()) / VTIME_MILLIS;
-        if (timeout_ms < 1) return 0;
+        vtime_t vtime = vtime_from_wall();
+        if (vtime > timeout) return 0;
         
-	e = poll(pollfds, 1, timeout_ms);
+        int timeout_ms = (timeout - vtime) / VTIME_MILLIS;
+        if (timeout_ms < 1) timeout_ms = 1;
+        
+        e = poll(pollfds, 1, timeout_ms);
         if (e == 0) return 0;
         assert(e>0);
         
@@ -153,6 +156,7 @@ packet_t *radio_recv(radio_t *radio, vtime_t timeout) {
         }
         n += e;
     }
+    
     if (!stopped) {
         fprintf(stderr, "WARNING: recv_packet overrun\n");
         return 0;
