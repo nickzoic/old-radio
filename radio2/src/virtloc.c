@@ -1,4 +1,4 @@
-// $Id: virtloc.c,v 1.3 2009-10-18 13:35:19 nick Exp $
+// $Id: virtloc.c,v 1.4 2009-10-18 13:48:01 nick Exp $
 
 #include "virtloc.h"
 
@@ -42,5 +42,4 @@ void virtloc_recalc(virtloc_t *virtloc, neigh_table_t neigh_table) {
             oldenergy = newenergy;
         }
     }
-    
 }

@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.18 2009-10-18 13:35:19 nick Exp $
+// $Id: node.c,v 1.19 2009-10-18 13:48:01 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,19 +54,25 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
     switch (packet->data[0]) {
         
         case PACKET_TYPE_BEACON:
-            if (node->status == NODE_STATUS_ASLEEP)
+            if (node->status == NODE_STATUS_ASLEEP) {
                 node->status = NODE_STATUS_WAKING;
+                Node_callback(node, vtime + NODE_BEACON_PERIOD, NULL);            
+            }
             neigh_t *nn = (neigh_t *)(packet->data+1);
             int nneigh = (packet->length - 1) / sizeof(neigh_t);
             assert( (packet->length - 1) % sizeof(neigh_t) == 0 );
             
             neigh_table_cull(node->neigh_table, vtime);
             for (int i=0; i<nneigh; i++) {
+                neigh_t nnn = nn[i];
                 printf(VTIME_FORMAT " %6d N %d %d %d %d %d\n",
-                       vtime, node->id, nn[i].id, nn[i].stratum, nn[i].loc.x, nn[i].loc.y, nn[i].loc.z);
-                neigh_table_insert(node->neigh_table, nn[i], vtime);
+                       vtime, node->id, nnn.id, nnn.stratum, nnn.loc.x, nnn.loc.y, nnn.loc.z);
+                nnn.stratum++;
+                neigh_table_insert(node->neigh_table, nnn, vtime);
             }
-            virtloc_recalc(&node->virtloc, node->neigh_table);
+            if (node->id) {
+                virtloc_recalc(&node->virtloc, node->neigh_table);
+            }
           break;
         
         case PACKET_TYPE_FLOOD:
@@ -118,8 +124,11 @@ void node_timer(node_t *node, vtime_t vtime) {
     
     printf(VTIME_FORMAT " %6d T\n", vtime, node->id);
 
-    virtloc_recalc(&node->virtloc, node->neigh_table);
+    if (node->id) virtloc_recalc(&node->virtloc, node->neigh_table);
     
+    printf(VTIME_FORMAT " %6d B %d %d %d\n",
+                       vtime, node->id, node->virtloc.loc.x, node->virtloc.loc.y, node->virtloc.loc.z);
+                
     packet_t *p = node_beacon(node);
     
     Node_callback(node, vtime, p);
