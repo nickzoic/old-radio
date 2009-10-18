@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.16 2009-10-18 11:05:01 nick Exp $
+// $Id: node.c,v 1.17 2009-10-18 12:58:17 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +20,7 @@ void (*Node_callback)(node_t *, vtime_t, packet_t *) = NULL;
 void node_init(node_t *node, node_id_t id) {
     node->id = id;
     neigh_table_init(node->neigh_table);
+    virtloc_init(node->neigh_table, id);
 }
 
 node_t *node_new(node_id_t id) {
@@ -49,11 +50,14 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
             neigh_t *nn = (neigh_t *)(packet->data+1);
             int nneigh = (packet->length - 1) / sizeof(neigh_t);
             assert( (packet->length - 1) % sizeof(neigh_t) == 0 );
+            
+            neigh_table_cull(node->neigh_table, vtime);
             for (int i=0; i<nneigh; i++) {
                 printf(VTIME_FORMAT " %6d N %d %d %d %d %d\n",
                        vtime, node->id, nn[i].id, nn[i].stratum, nn[i].loc.x, nn[i].loc.y, nn[i].loc.z);
                 neigh_table_insert(node->neigh_table, nn[i], vtime);
             }
+            virtloc_recalc(&node->virtloc, node->neigh_table);
           break;
         
         case PACKET_TYPE_FLOOD:
@@ -79,9 +83,8 @@ void node_timer(node_t *node, vtime_t vtime) {
     assert(Node_callback);
     
     printf(VTIME_FORMAT " %6d T\n", vtime, node->id);
-    
-    char s[200] = {0};
-    sprintf(s, "\xF0hello" VTIME_FORMAT "!", vtime);
+
+    virtloc_recalc(&node->virtloc, node->neigh_table);
     
     packet_t *p = packet_new(sizeof(s), s);
     

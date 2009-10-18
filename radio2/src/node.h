@@ -1,4 +1,4 @@
-// $Id: node.h,v 1.11 2009-10-14 05:31:16 nick Exp $
+// $Id: node.h,v 1.12 2009-10-18 12:58:17 nick Exp $
 
 #ifndef _NODE_H
 #define _NODE_H
@@ -26,6 +26,7 @@ typedef struct node_s {
     int status;
     
     neigh_table_t neigh_table;
+    virtloc_t virtloc;
     
     vtime_t flood_timeout;
     
