@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.11 2009-10-14 07:08:00 nick Exp $
+// $Id: node.c,v 1.12 2009-10-18 05:28:06 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,8 +6,8 @@
 
 #include "node.h"
 
-#define NODE_FLOOD_TIMEOUT_MS (1000)
-#define NODE_BEACON_PERIOD_MS (1000)
+#define NODE_FLOOD_TIMEOUT (1 * VTIME_SECONDS)
+#define NODE_BEACON_PERIOD (1 * VTIME_SECONDS)
 
 // this callback hook lets different frontends call the same node class
 // without too much pain.
@@ -60,7 +60,7 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
             if (vtime > node->flood_timeout) {
                 printf(VTIME_FORMAT " %6d F %.*s\n", vtime, node->id, (int)(packet->length)-1, (packet->data)+1);
                 Node_callback(node, vtime, packet);
-                node->flood_timeout = vtime_add_ms(vtime, NODE_FLOOD_TIMEOUT_MS);
+                node->flood_timeout = vtime + NODE_FLOOD_TIMEOUT;
             }
           break;
         
@@ -83,7 +83,7 @@ void node_timer(node_t *node, vtime_t vtime) {
     packet_t *p = packet_new(sizeof(s), s);
     
     Node_callback(node, vtime, p);
-    Node_callback(node, vtime_add_ms(vtime, NODE_BEACON_PERIOD_MS), NULL);
+    Node_callback(node, vtime + NODE_BEACON_PERIOD, NULL);
 
     packet_free(p);
 }

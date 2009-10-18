@@ -1,4 +1,4 @@
-// $Id: neigh.c,v 1.8 2009-10-14 05:31:16 nick Exp $
+// $Id: neigh.c,v 1.9 2009-10-18 05:28:06 nick Exp $
 
 #include <stdio.h>
 #include <stdint.h>
@@ -13,7 +13,7 @@ void neigh_table_insert(neigh_table_t *neigh_table, neigh_t neigh, vtime_t vtime
     
     if ( (entry->expiry < vtime) || (entry->neigh.stratum > neigh.stratum) ) {
         entry->neigh = neigh;
-        entry->expiry = vtime_add_ms(vtime, NEIGH_EXPIRY_TIMEOUT_MS);
+        entry->expiry = vtime + NEIGH_EXPIRY_TIMEOUT;
     }    
 }
 

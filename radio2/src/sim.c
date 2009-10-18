@@ -24,12 +24,12 @@ vtime_t sim_prop_delay(vtime_t vtime, packet_t *packet) {
     long delay_us = SIM_PROP_DELAY_US + SIM_PROP_DELAY_PERBYTE_US * packet->length;
     delay_us += rand() % SIM_PROP_DELAY_FUZZ_US;
     if (delay_us < SIM_PROP_DELAY_MIN_US) delay_us = SIM_PROP_DELAY_MIN_US;
-    return vtime_add_us(vtime, delay_us);
+    return vtime + delay_us * VTIME_MICROS;
 }
 
 vtime_t sim_timer_delay(vtime_t vtime) {
     long delay_us = rand() % SIM_TIMER_DELAY_FUZZ_US;
-    return vtime_add_us(vtime, delay_us);    
+    return vtime + delay_us * VTIME_MICROS;    
 }
 
 void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
     // to ignore events after this time.
     Queue = queue_new();
     if (argc >= 3) {
-        vtime_t timeout = vtime_add_s(vtime_zero(), atoi(argv[2]));
+        vtime_t timeout = atoi(argv[2]) * VTIME_SECONDS;
         queue_set_eschaton(Queue, timeout);
     }
     

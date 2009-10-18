@@ -1,4 +1,4 @@
-// $Id: radio.c,v 1.2 2009-10-18 04:34:04 nick Exp $
+// $Id: radio.c,v 1.3 2009-10-18 05:28:07 nick Exp $
 
 // This handles the lowest level of the protocol stack: encoding bytes into
 // symbols and pushing them out the serial port.  It doesn't do much in the
@@ -19,6 +19,7 @@
 
 #include "radio.h"
 #include "symbols.h"
+#include "crc.h"
 
 #define PREAMBLE_LEN (3)
 #define UARTSYNC_LEN (2)
@@ -68,19 +69,23 @@ radio_t *radio_new(char *devname, int baud_rate) {
 
 void radio_send(radio_t *radio, packet_t *packet) {
     assert(packet->length <= RADIO_MTU);
+    static unsigned char packet_buffer[RADIO_MTU + CRC16_LEN];
     static unsigned char send_buffer[MAX_FRAME];
+    
+    memcpy(packet->data, packet_buffer, packet->length);
+    crc16_set(packet_buffer, packet->length + CRC16_LEN);
     
     // Create packet w/ Preamble, Sync, Data, Epilogue
     memset(send_buffer, Symbol_Start, PREAMBLE_LEN);
     memset(send_buffer + PREAMBLE_LEN, Symbol_Sync, UARTSYNC_LEN);
-    int nsym = bytes_to_symbols(packet->data, packet->length, send_buffer+PREAMBLE_LEN+UARTSYNC_LEN);
+    int nsym = bytes_to_symbols(packet_buffer, packet->length + CRC16_LEN, send_buffer+PREAMBLE_LEN+UARTSYNC_LEN);
     memset(send_buffer + PREAMBLE_LEN + UARTSYNC_LEN + nsym, Symbol_End, EPILOGUE_LEN);
     
     // Send packet.
-    unsigned int packet_length = PREAMBLE_LEN + UARTSYNC_LEN + nsym + EPILOGUE_LEN;
+    unsigned int frame_length = PREAMBLE_LEN + UARTSYNC_LEN + nsym + EPILOGUE_LEN;
     int n = 0;
-    while (n < packet_length) {
-        int e = write(radio->fd, send_buffer+n, packet_length - n);
+    while (n < frame_length) {
+        int e = write(radio->fd, send_buffer+n, frame_length - n);
         assert(e>=0);
         n += e;    
     }
@@ -119,7 +124,7 @@ int radio_wait(radio_t *radio, vtime_t timeout) {
 packet_t *radio_recv(radio_t *radio, vtime_t timeout) {
 
     static unsigned char recv_buffer[MAX_FRAME];
-    static unsigned char packet_buffer[RADIO_MTU];
+    static unsigned char packet_buffer[RADIO_MTU + CRC16_LEN];
     
     struct pollfd pollfds[] = {{
 	radio->fd, POLLIN, 0    
@@ -161,8 +166,10 @@ packet_t *radio_recv(radio_t *radio, vtime_t timeout) {
     
     // Decode packet starting from first valid symbol
     int nbytes = symbols_to_bytes(recv_buffer+i, n-i, packet_buffer);
-    
-    return packet_new(nbytes, packet_buffer);
+    if (crc16_check(packet_buffer, nbytes)) {
+        return packet_new(nbytes-CRC16_LEN, packet_buffer);
+    }
+    return NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

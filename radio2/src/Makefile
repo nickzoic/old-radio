@@ -1,28 +1,28 @@
-# $Id: Makefile,v 1.10 2009-10-14 11:39:38 nick Exp $
+# $Id: Makefile,v 1.11 2009-10-18 05:28:06 nick Exp $
 
 CC=gcc
 
-#CFLAGS=-Wall -std=c99 -pg
+#CFLAGS=-Wall -std=gnu99 -pg
 #LDFLAGS=-lm -pg
 
-CFLAGS=-Wall -std=c99 -O6
+CFLAGS=-Wall -std=gnu99 -O6
 LDFLAGS=-lm
 
 OBJECTS_BOTH=vtime.o loc.o packet.o node.o neigh.o
 OBJECTS_SIM=topo.o sim.o queue.o
-OBJECTS_RADIO=radio.o
+OBJECTS_SERIAL=serial.o radio.o crc.o symbols.o
 
-all: sim radio
+all: sim serial
 
 test: queue_test
 	./queue_test && echo "PASS"
     
 clean:
-	rm $(OBJECTS_BOTH) $(OBJECTS_SIM) $(OBJECTS_RADIO)
+	rm $(OBJECTS_BOTH) $(OBJECTS_SIM) $(OBJECTS_SERIAL)
 
 sim: $(OBJECTS_BOTH) $(OBJECTS_SIM)
 
-radio: $(OBJECTS_BOTH) $(OBJECTS_RADIO)
+serial: $(OBJECTS_BOTH) $(OBJECTS_SERIAL)
 
 queue_test: queue_test.o queue.o
 
@@ -42,3 +42,10 @@ energy.o: energy.c energy.h loc.h
 
 topo.o: topo.c topo.h node.h
 
+crc.o: crc.c crc.h
+
+symbols.o: symbols.c symbols.h symbols.i
+
+radio.o: radio.c radio.h symbols.h crc.h
+
+serial.o: serial.c vtime.h node.h radio.h

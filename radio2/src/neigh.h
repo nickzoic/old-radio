@@ -1,4 +1,4 @@
-// $Id: neigh.h,v 1.7 2009-10-09 10:00:13 nick Exp $
+// $Id: neigh.h,v 1.8 2009-10-18 05:28:06 nick Exp $
 
 #ifndef _NEIGH_H
 #define _NEIGH_H
@@ -8,7 +8,7 @@
 #include "vtime.h"
 #include "loc.h"
 
-#define NEIGH_EXPIRY_TIMEOUT_MS (2500)
+#define NEIGH_EXPIRY_TIMEOUT (2500 * VTIME_MILLIS)
 
 #define NEIGH_ID_MAX (50)
 

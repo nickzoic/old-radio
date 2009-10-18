@@ -1,4 +1,4 @@
-// $Id: vtime.h,v 1.7 2009-10-14 05:31:18 nick Exp $
+// $Id: vtime.h,v 1.8 2009-10-18 05:28:07 nick Exp $
 
 #ifndef _VTIME_H
 #define _VTIME_H
@@ -14,10 +14,7 @@ typedef uint64_t vtime_t;
 #define VTIME_MILLIS (1000)
 #define VTIME_MICROS (1)
 
-vtime_t vtime_zero();
-vtime_t vtime_add_s(vtime_t vtime, int s);
-vtime_t vtime_add_ms(vtime_t vtime, int ms);
-vtime_t vtime_add_us(vtime_t vtime, int us);
+vtime_t vtime_from_wall();
 
 #if __WORDSIZE == 64
 #define VTIME_FORMAT "%012ld"
