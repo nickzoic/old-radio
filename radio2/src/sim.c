@@ -13,6 +13,8 @@ node_t *Nodes;
 int N_nodes;
 topo_t *Topo;
 
+vtime_t Eschaton;
+
 #define SIM_PROP_DELAY_US (1000)
 #define SIM_PROP_DELAY_PERBYTE_US (1000)
 #define SIM_PROP_DELAY_MIN_US (1000)
@@ -41,18 +43,21 @@ void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
         while ((t = topo_iter_next(topo_iter))) {
             queue_event_t e;
             e.vtime = sim_prop_delay(vtime, packet);
-            e.node = &Nodes[t->dst];
-            e.packet = packet_clone(packet);
-            queue_insert(Queue, e);
+            if (e.vtime < Eschaton) {
+                e.node = &Nodes[t->dst];
+                e.packet = packet_clone(packet);
+                queue_insert(Queue, e);
+            }
         }
-        
         topo_iter_free(topo_iter);
     } else {
         queue_event_t e;
         e.vtime = sim_timer_delay(vtime);
-        e.node = node;
-        e.packet = NULL;
-        queue_insert(Queue, e);
+        if (e.vtime < Eschaton) {
+            e.node = node;
+            e.packet = NULL;
+            queue_insert(Queue, e);
+        }
     }
 }
 
@@ -70,12 +75,11 @@ int main(int argc, char *argv[]) {
     topo_file_read(Topo, fp);
     fclose(fp);
     
-    // Initialize the queue.  If there's a timeout specified, tell the queue
-    // to ignore events after this time.
+    // Initialize the queue.
     Queue = queue_new();
+    
     if (argc >= 3) {
-        vtime_t timeout = atoi(argv[2]) * VTIME_SECONDS;
-        queue_set_eschaton(Queue, timeout);
+        Eschaton = atoi(argv[2]) * VTIME_SECONDS;
     }
     
     // allocate node table & initialize all the nodes

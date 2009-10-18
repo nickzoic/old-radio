@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.14 2009-10-18 09:09:33 nick Exp $
+// $Id: node.c,v 1.15 2009-10-18 09:53:58 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,6 +69,7 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
                    vtime, node->id, (packet->data)[0], packet->length);
           break;
     }
+    
 }
 
 void node_timer(node_t *node, vtime_t vtime) {

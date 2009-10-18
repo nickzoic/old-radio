@@ -1,4 +1,4 @@
-// $Id: queue.c,v 1.3 2009-10-07 21:46:43 nick Exp $
+// $Id: queue.c,v 1.4 2009-10-18 09:53:58 nick Exp $
 // queue: implements a simple Heap Queue for keeping queue_events in time order
 // It is implemented as an automatically resizing heap queue.
 
@@ -56,20 +56,13 @@ queue_t *queue_new() {
     queue->size = QUEUE_HEAP_SIZE_MIN;
     queue->nevents = 0;
     queue->events = (queue_event_t *)malloc(queue->size * sizeof(queue_event_t));
-    queue->eschaton = VTIME_INF;
     assert(queue->events);
     
     return queue;
 }
 
-void queue_set_eschaton(queue_t *queue, vtime_t eschaton) {
-    // sets a vtime limit after which no more events will be accepted.
-    queue->eschaton = eschaton;
-}
-
 void queue_insert(queue_t *queue, queue_event_t event) {
     _queue_resize(queue);
-    if (event.vtime >= queue->eschaton) return;
     
     int i = queue->nevents;
     queue->nevents++;
