@@ -1,4 +1,4 @@
-// $Id: virtloc.h,v 1.2 2009-10-18 12:58:17 nick Exp $
+// $Id: virtloc.h,v 1.3 2009-10-18 13:35:20 nick Exp $
 
 #ifndef _VIRTLOC_H
 #define _VIRTLOC_H
@@ -6,7 +6,6 @@
 #include "vtime.h"
 #include "loc.h"
 #include "neigh.h"
-#include "node.h"
 
 typedef struct virtloc_s {
     loc_t loc;

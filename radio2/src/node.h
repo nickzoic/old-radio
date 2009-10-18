@@ -1,4 +1,4 @@
-// $Id: node.h,v 1.12 2009-10-18 12:58:17 nick Exp $
+// $Id: node.h,v 1.13 2009-10-18 13:35:19 nick Exp $
 
 #ifndef _NODE_H
 #define _NODE_H
@@ -9,6 +9,7 @@
 #include "vtime.h"
 #include "packet.h"
 #include "neigh.h"
+#include "virtloc.h"
 
 #define NODE_STATUS_ASLEEP (0)
 #define NODE_STATUS_WAKING (1)

@@ -1,4 +1,4 @@
-// $Id: neigh.c,v 1.11 2009-10-18 12:58:16 nick Exp $
+// $Id: neigh.c,v 1.12 2009-10-18 13:35:19 nick Exp $
 
 #include <stdio.h>
 #include <stdint.h>
@@ -47,8 +47,10 @@ void neigh_table_insert(neigh_table_t neigh_table, neigh_t neigh, vtime_t vtime)
 ////////////////////////////////////////////////////////////////////////////////
 
 void neigh_table_cull(neigh_table_t neigh_table, vtime_t vtime) {
-    if (neigh_table[i].expiry >= vtime) {
-        neigh_table[i].expiry = 0;
+    for (int i=0; i<NEIGH_MAX; i++) {
+        if (neigh_table[i].expiry >= vtime) {
+            neigh_table[i].expiry = 0;
+        }
     }
 }
 

@@ -1,27 +1,30 @@
-// $Id: node.c,v 1.17 2009-10-18 12:58:17 nick Exp $
+// $Id: node.c,v 1.18 2009-10-18 13:35:19 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
 #include "node.h"
-#include "neigh.h"
 
 #define NODE_FLOOD_TIMEOUT (1 * VTIME_SECONDS)
 #define NODE_BEACON_PERIOD (1 * VTIME_SECONDS)
+
+#define NODE_BEACON_SIZE (200)
 
 // this callback hook lets different frontends call the same node class
 // without too much pain.
 
 void (*Node_callback)(node_t *, vtime_t, packet_t *) = NULL;
 
-// PUBLIC
+////////////////////////////////////////////////////////////////////////////////
 
 void node_init(node_t *node, node_id_t id) {
     node->id = id;
     neigh_table_init(node->neigh_table);
-    virtloc_init(node->neigh_table, id);
+    virtloc_init(&node->virtloc, id);
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 node_t *node_new(node_id_t id) {
     node_t *node = calloc(1,sizeof(node_t));
@@ -29,14 +32,20 @@ node_t *node_new(node_id_t id) {
     return node;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 void node_set_status(node_t *node, vtime_t vtime, int status) {
     node->status = status;
     printf(VTIME_FORMAT " %6d S %d\n", vtime, node->id, status);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 void node_register_callback(void (*callback)(node_t *, vtime_t, packet_t *)) {
     Node_callback = callback;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
     assert(node);
@@ -78,6 +87,31 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
     
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+packet_t *node_beacon(node_t *node) {
+    char buffer[NODE_BEACON_SIZE];
+    buffer[0] = PACKET_TYPE_BEACON;
+    neigh_t *np = (neigh_t *)(buffer + 1);
+    np[0].stratum = 0;
+    np[0].loc = node->virtloc.loc;
+    np[0].id = node->id;
+
+    int nneigh = 1;
+    int maxneigh = (NODE_BEACON_SIZE - 1) / sizeof(neigh_t);
+    neigh_iter_t *iter = neigh_iter_new(node->neigh_table);
+    while (nneigh < maxneigh) {
+        neigh_t *n = neigh_iter_next(iter);
+        if (!n) break;
+        np[nneigh] = *n;
+        nneigh++;
+    }
+    
+    return packet_new(1 + nneigh * sizeof(neigh_t), buffer);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void node_timer(node_t *node, vtime_t vtime) {
     assert(node);
     assert(Node_callback);
@@ -86,7 +120,7 @@ void node_timer(node_t *node, vtime_t vtime) {
 
     virtloc_recalc(&node->virtloc, node->neigh_table);
     
-    packet_t *p = packet_new(sizeof(s), s);
+    packet_t *p = node_beacon(node);
     
     Node_callback(node, vtime, p);
     Node_callback(node, vtime + NODE_BEACON_PERIOD, NULL);
@@ -94,6 +128,10 @@ void node_timer(node_t *node, vtime_t vtime) {
     packet_free(p);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 void node_free(node_t *node) {
     free(node);
 }
+
+////////////////////////////////////////////////////////////////////////////////

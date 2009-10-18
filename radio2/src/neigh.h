@@ -1,4 +1,4 @@
-// $Id: neigh.h,v 1.10 2009-10-18 12:58:17 nick Exp $
+// $Id: neigh.h,v 1.11 2009-10-18 13:35:19 nick Exp $
 
 #ifndef _NEIGH_H
 #define _NEIGH_H
@@ -35,7 +35,7 @@ typedef struct neigh_iter_s {
 
 void neigh_table_init(neigh_table_t neigh_table);
 
-void neigh_table_insert(neigh_table_t neigh_table, neigh_t neigh);
+void neigh_table_insert(neigh_table_t neigh_table, neigh_t neigh, vtime_t vtime);
 void neigh_table_cull(neigh_table_t neigh_table, vtime_t vtime);
 
 neigh_iter_t *neigh_iter_new(neigh_table_t neigh_table);
