@@ -1,10 +1,11 @@
-// $Id: node.c,v 1.15 2009-10-18 09:53:58 nick Exp $
+// $Id: node.c,v 1.16 2009-10-18 11:05:01 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
 #include "node.h"
+#include "neigh.h"
 
 #define NODE_FLOOD_TIMEOUT (1 * VTIME_SECONDS)
 #define NODE_BEACON_PERIOD (1 * VTIME_SECONDS)
@@ -18,6 +19,7 @@ void (*Node_callback)(node_t *, vtime_t, packet_t *) = NULL;
 
 void node_init(node_t *node, node_id_t id) {
     node->id = id;
+    neigh_table_init(node->neigh_table);
 }
 
 node_t *node_new(node_id_t id) {
@@ -50,7 +52,7 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
             for (int i=0; i<nneigh; i++) {
                 printf(VTIME_FORMAT " %6d N %d %d %d %d %d\n",
                        vtime, node->id, nn[i].id, nn[i].stratum, nn[i].loc.x, nn[i].loc.y, nn[i].loc.z);
-                neigh_table_insert(&(node->neigh_table), nn[i], vtime);
+                neigh_table_insert(node->neigh_table, nn[i], vtime);
             }
           break;
         
