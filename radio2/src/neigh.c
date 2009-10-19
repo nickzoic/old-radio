@@ -1,4 +1,4 @@
-// $Id: neigh.c,v 1.12 2009-10-18 13:35:19 nick Exp $
+// $Id: neigh.c,v 1.13 2009-10-19 01:02:13 nick Exp $
 
 #include <stdio.h>
 #include <stdint.h>
@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 void neigh_table_init(neigh_table_t neigh_table) {
-    memset(neigh_table, 0, sizeof(neigh_table_t));
+    memset(&neigh_table, 0, sizeof(neigh_table_t));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -21,35 +21,32 @@ void neigh_table_insert(neigh_table_t neigh_table, neigh_t neigh, vtime_t vtime)
     // if we've already got this ID, THEN:
     //     if the new one is the same or lower stratum or has expired, replace it.
     //     otherwise ignore it.
-    for (int i=0; i<NEIGH_MAX; i++) {
-        if (neigh_table[i].neigh.id == neigh.id) {
-            if (neigh_table[i].neigh.stratum <= neigh.stratum ||
-                    neigh_table[i].expiry < vtime) {
-                neigh_table[i].neigh = neigh;
-                neigh_table[i].expiry = vtime + NEIGH_EXPIRY_TIMEOUT;
+    for (int i=0; i<neigh_table.nneigh; i++) {
+        printf(">>>>>> %d %d %d\n", i, neigh_table.table[i].neigh.id, neigh.id);
+        if (neigh_table.table[i].neigh.id == neigh.id) {
+            if (neigh_table.table[i].neigh.stratum <= neigh.stratum ||
+                    neigh_table.table[i].expiry < vtime) {
+                neigh_table.table[i].neigh = neigh;
+                neigh_table.table[i].expiry = vtime + NEIGH_EXPIRY_TIMEOUT;
+                printf(">>> neigh %d slot %d hit\n", neigh.id, i); 
             }
             return;
         }
     }
     
-    // if we haven't got this ID, insert it replacing an expired or empty entry.
-    for (int i=0; i<NEIGH_MAX; i++) {
-        if (neigh_table[i].expiry < vtime) {
-            neigh_table[i].neigh = neigh;
-            neigh_table[i].expiry = vtime + NEIGH_EXPIRY_TIMEOUT;
-            return;
-        }
-    }
+    assert(neigh_table.nneigh < NEIGH_MAX);
     
-    fprintf(stderr, "Neighbourhood overflow!\n");
+    neigh_table.table[neigh_table.nneigh].neigh = neigh;
+    neigh_table.table[neigh_table.nneigh].expiry = vtime + NEIGH_EXPIRY_TIMEOUT;
+    neigh_table.nneigh++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void neigh_table_cull(neigh_table_t neigh_table, vtime_t vtime) {
-    for (int i=0; i<NEIGH_MAX; i++) {
-        if (neigh_table[i].expiry >= vtime) {
-            neigh_table[i].expiry = 0;
+    for (int i=0; i<neigh_table.nneigh; i++) {
+        if (neigh_table.table[i].expiry >= vtime) {
+            neigh_table.table[i].expiry = 0;
         }
     }
 }
@@ -57,8 +54,8 @@ void neigh_table_cull(neigh_table_t neigh_table, vtime_t vtime) {
 ////////////////////////////////////////////////////////////////////////////////
 
 void *neigh_table_foreach(neigh_table_t neigh_table, void *(*func)(neigh_t neigh, void *data), void *data) {
-    for (int i=0; i < NEIGH_MAX; i++) {
-        if (neigh_table[i].expiry) data = func(neigh_table[i].neigh, data);
+    for (int i=0; i < neigh_table.nneigh; i++) {
+        if (neigh_table.table[i].expiry) data = func(neigh_table.table[i].neigh, data);
     }
     return data;
 }
@@ -67,7 +64,7 @@ void *neigh_table_foreach(neigh_table_t neigh_table, void *(*func)(neigh_t neigh
 
 neigh_iter_t *neigh_iter_new(neigh_table_t neigh_table) {
     neigh_iter_t *iter = (neigh_iter_t *)malloc(sizeof(neigh_iter_t));
-    iter->table = neigh_table;
+    iter->table = &neigh_table;
     iter->index = 0;
     return iter;
 }
@@ -75,8 +72,8 @@ neigh_iter_t *neigh_iter_new(neigh_table_t neigh_table) {
 ////////////////////////////////////////////////////////////////////////////////
 
 neigh_t *neigh_iter_next(neigh_iter_t *iter) {
-    while(iter->index < NEIGH_MAX) {
-        neigh_entry_t *entry = &iter->table[iter->index];
+    while(iter->index < iter->table->nneigh) {
+        neigh_entry_t *entry = &iter->table->table[iter->index];
         iter->index++;
         if (entry->expiry) return &entry->neigh;
     }

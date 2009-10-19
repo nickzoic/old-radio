@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.19 2009-10-18 13:48:01 nick Exp $
+// $Id: node.c,v 1.20 2009-10-19 01:02:13 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -65,7 +65,7 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
             neigh_table_cull(node->neigh_table, vtime);
             for (int i=0; i<nneigh; i++) {
                 neigh_t nnn = nn[i];
-                printf(VTIME_FORMAT " %6d N %d %d %d %d %d\n",
+                printf(VTIME_FORMAT " %6d N %d s%d (%d %d %d)\n",
                        vtime, node->id, nnn.id, nnn.stratum, nnn.loc.x, nnn.loc.y, nnn.loc.z);
                 nnn.stratum++;
                 neigh_table_insert(node->neigh_table, nnn, vtime);
@@ -109,8 +109,10 @@ packet_t *node_beacon(node_t *node) {
     while (nneigh < maxneigh) {
         neigh_t *n = neigh_iter_next(iter);
         if (!n) break;
-        np[nneigh] = *n;
-        nneigh++;
+        if (n->stratum == 1) {
+            np[nneigh] = *n;
+            nneigh++;
+        }
     }
     
     return packet_new(1 + nneigh * sizeof(neigh_t), buffer);
@@ -126,10 +128,11 @@ void node_timer(node_t *node, vtime_t vtime) {
 
     if (node->id) virtloc_recalc(&node->virtloc, node->neigh_table);
     
-    printf(VTIME_FORMAT " %6d B %d %d %d\n",
-                       vtime, node->id, node->virtloc.loc.x, node->virtloc.loc.y, node->virtloc.loc.z);
-                
     packet_t *p = node_beacon(node);
+    
+    printf(VTIME_FORMAT " %6d B (%d %d %d) %ld\n",
+            vtime, node->id, node->virtloc.loc.x, node->virtloc.loc.y,
+            node->virtloc.loc.z, p->length / sizeof(neigh_t));
     
     Node_callback(node, vtime, p);
     Node_callback(node, vtime + NODE_BEACON_PERIOD, NULL);
