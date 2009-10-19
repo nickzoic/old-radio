@@ -1,4 +1,4 @@
-// $Id: virtloc.c,v 1.5 2009-10-19 19:53:58 nick Exp $
+// $Id: virtloc.c,v 1.6 2009-10-19 20:07:58 nick Exp $
 
 #include "virtloc.h"
 
@@ -38,9 +38,9 @@ void virtloc_recalc(virtloc_t *virtloc, neigh_table_t *neigh_table) {
     unsigned long oldenergy = energy(virtloc->loc, neigh_table);
     if (!oldenergy) return;
     
-    for (int i=0; i<500; i++) {
+    for (int i=1; i<300; i++) {
         loc_t newloc = virtloc->loc;
-        loc_perturb(&newloc, 2000/(i+5));
+        loc_perturb(&newloc, (200/i)+1);
         
         unsigned long newenergy = energy(newloc, neigh_table);
         if (newenergy <= oldenergy) {
