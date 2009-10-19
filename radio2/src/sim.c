@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "vtime.h"
 #include "topo.h"
@@ -41,6 +42,7 @@ void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
     
         topo_entry_t *t;
         while ((t = topo_iter_next(topo_iter))) {
+            ///printf("@@@ %d -> %d\n", t->src, t->dst);
             queue_event_t e;
             e.vtime = sim_prop_delay(vtime, packet);
             if (e.vtime < Eschaton) {
@@ -68,6 +70,8 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "usage: %s <topofile> [<timeout>]\n", argv[0]);
         exit(1);
     }
+    
+    srand(vtime_from_wall() * getpid());
     
     // Load the topology file
     Topo = topo_new();
@@ -107,6 +111,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    for (int i=0; i < N_nodes; i++) {
+        node_deinit(&Nodes[i]);    
+    }
+    
     free(Nodes);
     topo_free(Topo);    
     queue_free(Queue);

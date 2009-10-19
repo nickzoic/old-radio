@@ -1,4 +1,4 @@
-// $Id: virtloc.h,v 1.3 2009-10-18 13:35:20 nick Exp $
+// $Id: virtloc.h,v 1.4 2009-10-19 19:53:58 nick Exp $
 
 #ifndef _VIRTLOC_H
 #define _VIRTLOC_H
@@ -13,6 +13,6 @@ typedef struct virtloc_s {
 
 void virtloc_init(virtloc_t *virtloc, neigh_id_t id);
 
-void virtloc_recalc(virtloc_t *virtloc, neigh_table_t neigh_table);
+void virtloc_recalc(virtloc_t *virtloc, neigh_table_t *neigh_table);
 
 #endif

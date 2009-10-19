@@ -1,4 +1,4 @@
-// $Id: neigh.h,v 1.12 2009-10-19 01:02:13 nick Exp $
+// $Id: neigh.h,v 1.13 2009-10-19 19:53:57 nick Exp $
 
 #ifndef _NEIGH_H
 #define _NEIGH_H
@@ -8,7 +8,7 @@
 #include "vtime.h"
 #include "loc.h"
 
-#define NEIGH_EXPIRY_TIMEOUT (2500 * VTIME_MILLIS)
+#define NEIGH_EXPIRY_TIMEOUT (30 * VTIME_SECONDS)
 
 #define NEIGH_MAX (50)
 
@@ -36,13 +36,15 @@ typedef struct neigh_iter_s {
     int index;
 } neigh_iter_t;
 
-void neigh_table_init(neigh_table_t neigh_table);
+neigh_table_t *neigh_table_new();
 
-void neigh_table_insert(neigh_table_t neigh_table, neigh_t neigh, vtime_t vtime);
-void neigh_table_cull(neigh_table_t neigh_table, vtime_t vtime);
+void neigh_table_insert(neigh_table_t *neigh_table, neigh_t neigh, vtime_t vtime);
+void neigh_table_cull(neigh_table_t *neigh_table, vtime_t vtime);
 
-neigh_iter_t *neigh_iter_new(neigh_table_t neigh_table);
+neigh_iter_t *neigh_iter_new(neigh_table_t *neigh_table);
 neigh_t *neigh_iter_next(neigh_iter_t *iter);
 void neigh_iter_free(neigh_iter_t *iter);
+
+void neigh_table_free(neigh_table_t *table);
 
 #endif

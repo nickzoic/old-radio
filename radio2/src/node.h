@@ -1,4 +1,4 @@
-// $Id: node.h,v 1.13 2009-10-18 13:35:19 nick Exp $
+// $Id: node.h,v 1.14 2009-10-19 19:53:57 nick Exp $
 
 #ifndef _NODE_H
 #define _NODE_H
@@ -26,7 +26,9 @@ typedef struct node_s {
     node_id_t id;
     int status;
     
-    neigh_table_t neigh_table;
+    neigh_table_t *neigh_table;
+    loc_t loc;
+    
     virtloc_t virtloc;
     
     vtime_t flood_timeout;
@@ -44,6 +46,7 @@ void node_register_callback(void (*sender)(node_t *, vtime_t, packet_t *));
 void node_receive(node_t *node, vtime_t vtime, packet_t *packet);
 void node_timer(node_t *node, vtime_t vtime);
 
+void node_deinit(node_t *node);
 void node_free(node_t *node);
 
 #endif

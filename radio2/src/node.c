@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.20 2009-10-19 01:02:13 nick Exp $
+// $Id: node.c,v 1.21 2009-10-19 19:53:57 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +20,7 @@ void (*Node_callback)(node_t *, vtime_t, packet_t *) = NULL;
 
 void node_init(node_t *node, node_id_t id) {
     node->id = id;
-    neigh_table_init(node->neigh_table);
+    node->neigh_table = neigh_table_new();
     virtloc_init(&node->virtloc, id);
 }
 
@@ -62,15 +62,19 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
             int nneigh = (packet->length - 1) / sizeof(neigh_t);
             assert( (packet->length - 1) % sizeof(neigh_t) == 0 );
             
-            neigh_table_cull(node->neigh_table, vtime);
             for (int i=0; i<nneigh; i++) {
+                if (nn[i].id == node->id) continue;
                 neigh_t nnn = nn[i];
-                printf(VTIME_FORMAT " %6d N %d s%d (%d %d %d)\n",
-                       vtime, node->id, nnn.id, nnn.stratum, nnn.loc.x, nnn.loc.y, nnn.loc.z);
                 nnn.stratum++;
+                printf(VTIME_FORMAT " %6d N %d s%d (%d %d %d) %g\n",
+                       vtime, node->id, nnn.id, nnn.stratum,
+                       nnn.loc.x, nnn.loc.y, nnn.loc.z,
+                       loc_dist(&node->virtloc.loc, &nnn.loc)
+                );
                 neigh_table_insert(node->neigh_table, nnn, vtime);
             }
             if (node->id) {
+                //neigh_table_cull(node->neigh_table, vtime);
                 virtloc_recalc(&node->virtloc, node->neigh_table);
             }
           break;
@@ -114,6 +118,7 @@ packet_t *node_beacon(node_t *node) {
             nneigh++;
         }
     }
+    neigh_iter_free(iter);
     
     return packet_new(1 + nneigh * sizeof(neigh_t), buffer);
 }
@@ -142,7 +147,14 @@ void node_timer(node_t *node, vtime_t vtime) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+void node_deinit(node_t *node) {
+    neigh_table_free(node->neigh_table);    
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void node_free(node_t *node) {
+    node_deinit(node);
     free(node);
 }
 
