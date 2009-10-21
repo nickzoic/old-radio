@@ -1,4 +1,4 @@
-// $Id: neigh.c,v 1.15 2009-10-21 12:24:16 nick Exp $
+// $Id: neigh.c,v 1.16 2009-10-21 12:37:25 nick Exp $
 
 #include <stdio.h>
 #include <stdint.h>
@@ -48,7 +48,7 @@ void neigh_table_cull(neigh_table_t *neigh_table, vtime_t vtime) {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////  neigh_table_foreach
 
 void *neigh_table_foreach(neigh_table_t *neigh_table, void *(*func)(neigh_t neigh, void *data), void *data) {
     for (int i=0; i < neigh_table->nneigh; i++) {
@@ -57,7 +57,7 @@ void *neigh_table_foreach(neigh_table_t *neigh_table, void *(*func)(neigh_t neig
     return data;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////  neigh_iter_new
 
 neigh_iter_t *neigh_iter_new(neigh_table_t *neigh_table) {
     neigh_iter_t *iter = (neigh_iter_t *)malloc(sizeof(neigh_iter_t));
@@ -66,7 +66,7 @@ neigh_iter_t *neigh_iter_new(neigh_table_t *neigh_table) {
     return iter;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////  neigh_iter_next
 
 neigh_t *neigh_iter_next(neigh_iter_t *iter) {
     while(iter->index < iter->table->nneigh) {
@@ -77,14 +77,16 @@ neigh_t *neigh_iter_next(neigh_iter_t *iter) {
     return NULL;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////  neigh_iter_free
 
 void neigh_iter_free(neigh_iter_t *iter) {
     free(iter);
 }
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////  neigh_table_free
 
 void neigh_table_free(neigh_table_t *table) {
     free(table);
 }
+
+////////////////////////////////////////////////////////////////////////////////

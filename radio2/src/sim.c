@@ -7,39 +7,37 @@
 #include "node.h"
 #include "queue.h"
 
-#define XMIT_DELAY_MS (1)
+///////////////////////////////////////////////////////////////////////  GLOBALS
 
 queue_t *Queue;
 node_t *Nodes;
 int N_nodes;
 topo_t *Topo;
-
 vtime_t Eschaton = VTIME_INF;
 
-#define SIM_PROP_DELAY_US (1000)
-#define SIM_PROP_DELAY_PERBYTE_US (1000)
-#define SIM_PROP_DELAY_MIN_US (1000)
-#define SIM_PROP_DELAY_FUZZ_US (1000)
+#define SIM_PROP_DELAY (1000 * VTIME_MICROS)
+#define SIM_PROP_DELAY_PERBYTE (1000 * VTIME_MICROS)
+#define SIM_PROP_DELAY_MIN (1000 * VTIME_MICROS)
+#define SIM_PROP_DELAY_FUZZ (1000 * VTIME_MICROS)
+#define SIM_TIMER_DELAY_FUZZ (1000 * VTIME_MICROS)
 
-#define SIM_TIMER_DELAY_FUZZ_US (1000)
-
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////  sim_prop_delay
 
 vtime_t sim_prop_delay(vtime_t vtime, packet_t *packet) {
-    long delay_us = SIM_PROP_DELAY_US + SIM_PROP_DELAY_PERBYTE_US * packet->length;
-    delay_us += rand() % SIM_PROP_DELAY_FUZZ_US;
-    if (delay_us < SIM_PROP_DELAY_MIN_US) delay_us = SIM_PROP_DELAY_MIN_US;
-    return vtime + delay_us * VTIME_MICROS;
+    long delay = SIM_PROP_DELAY + SIM_PROP_DELAY_PERBYTE * packet->length;
+    delay += rand() % SIM_PROP_DELAY_FUZZ;
+    if (delay < SIM_PROP_DELAY_MIN) delay = SIM_PROP_DELAY_MIN;
+    return vtime + delay;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////  sim_timer_delay
 
 vtime_t sim_timer_delay(vtime_t vtime) {
-    long delay_us = rand() % SIM_TIMER_DELAY_FUZZ_US;
-    return vtime + delay_us * VTIME_MICROS;    
+    long delay = rand() % SIM_TIMER_DELAY_FUZZ;
+    return vtime + delay * VTIME_MICROS;    
 }
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////  sim_callback
 
 void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
 
@@ -69,7 +67,7 @@ void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////  MAIN
 
 int main(int argc, char *argv[]) {
     
@@ -135,3 +133,5 @@ int main(int argc, char *argv[]) {
     queue_free(Queue);
     return 0;
 }
+
+////////////////////////////////////////////////////////////////////////////////
