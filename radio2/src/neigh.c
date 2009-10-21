@@ -1,4 +1,4 @@
-// $Id: neigh.c,v 1.14 2009-10-19 19:53:57 nick Exp $
+// $Id: neigh.c,v 1.15 2009-10-21 12:24:16 nick Exp $
 
 #include <stdio.h>
 #include <stdint.h>
@@ -8,13 +8,13 @@
 
 #include "neigh.h"
 
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////  neigh_table_new
 
 neigh_table_t *neigh_table_new() {
     return (neigh_table_t *)calloc(1, sizeof(neigh_table_t));
 }
 
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////  neigh_table_insert
 
 void neigh_table_insert(neigh_table_t *neigh_table, neigh_t neigh, vtime_t vtime) {
     
@@ -38,7 +38,7 @@ void neigh_table_insert(neigh_table_t *neigh_table, neigh_t neigh, vtime_t vtime
     neigh_table->nneigh++;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////  neigh_table_cull
 
 void neigh_table_cull(neigh_table_t *neigh_table, vtime_t vtime) {
     for (int i=0; i<neigh_table->nneigh; i++) {

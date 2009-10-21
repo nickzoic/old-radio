@@ -1,4 +1,4 @@
-// $Id: queue.c,v 1.4 2009-10-18 09:53:58 nick Exp $
+// $Id: queue.c,v 1.5 2009-10-21 12:24:17 nick Exp $
 // queue: implements a simple Heap Queue for keeping queue_events in time order
 // It is implemented as an automatically resizing heap queue.
 
@@ -7,6 +7,7 @@
 
 #include "queue.h"
 
+////////////////////////////////////////////////////////////////////////////////
 // PRIVATE
 
 #define QUEUE_HEAP_SIZE_MIN (1024)
@@ -14,6 +15,8 @@
 #define QUEUE_HEAP_PARENT(x) (((x)+1)/2-1)
 #define QUEUE_HEAP_LEFT(x) (((x)+1)*2-1)
 #define QUEUE_HEAP_RIGHT(x) (((x)+1)*2)
+
+////////////////////////////////////////////////////////////////////////////////
 
 void _queue_resize(queue_t *queue) {
     if (queue->nevents == queue->size) {
@@ -27,6 +30,8 @@ void _queue_resize(queue_t *queue) {
     queue->events = (queue_event_t *)realloc(queue->events, queue->size * sizeof(queue_event_t));
     assert(queue->events);
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 void _queue_heapify(queue_t *queue) {
     int i = 0;
@@ -49,6 +54,7 @@ void _queue_heapify(queue_t *queue) {
 }
 
 // PUBLIC
+////////////////////////////////////////////////////////////////////////////////
 
 queue_t *queue_new() {
     
@@ -60,6 +66,8 @@ queue_t *queue_new() {
     
     return queue;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 void queue_insert(queue_t *queue, queue_event_t event) {
     _queue_resize(queue);
@@ -76,6 +84,8 @@ void queue_insert(queue_t *queue, queue_event_t event) {
     queue->events[i] = event;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 queue_event_t queue_pop(queue_t *queue) {
     queue_event_t e = QUEUE_EVENT_NULL;
     if (!queue->nevents) return e;
@@ -89,6 +99,8 @@ queue_event_t queue_pop(queue_t *queue) {
     
     return e;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 void queue_free(queue_t *queue) {
     free(queue->events);

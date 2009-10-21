@@ -23,6 +23,8 @@ vtime_t Eschaton = VTIME_INF;
 
 #define SIM_TIMER_DELAY_FUZZ_US (1000)
 
+////////////////////////////////////////////////////////////////////////////////
+
 vtime_t sim_prop_delay(vtime_t vtime, packet_t *packet) {
     long delay_us = SIM_PROP_DELAY_US + SIM_PROP_DELAY_PERBYTE_US * packet->length;
     delay_us += rand() % SIM_PROP_DELAY_FUZZ_US;
@@ -30,10 +32,14 @@ vtime_t sim_prop_delay(vtime_t vtime, packet_t *packet) {
     return vtime + delay_us * VTIME_MICROS;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 vtime_t sim_timer_delay(vtime_t vtime) {
     long delay_us = rand() % SIM_TIMER_DELAY_FUZZ_US;
     return vtime + delay_us * VTIME_MICROS;    
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
 
@@ -63,6 +69,7 @@ void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
 
 int main(int argc, char *argv[]) {
     

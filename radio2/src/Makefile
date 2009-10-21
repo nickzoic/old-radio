@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.17 2009-10-21 07:10:26 nick Exp $
+# $Id: Makefile,v 1.18 2009-10-21 12:24:16 nick Exp $
 
 CC=gcc
 
@@ -12,6 +12,8 @@ OBJECTS_BOTH=vtime.o loc.o packet.o node.o neigh.o virtloc.o
 OBJECTS_SIM=topo.o sim.o queue.o
 OBJECTS_SERIAL=serial.o radio.o crc.o symbols.o
 
+################################################################################
+
 all: sim serial
 
 test: queue_test symbols_test crc_test packet_test
@@ -23,6 +25,7 @@ test: queue_test symbols_test crc_test packet_test
 clean:
 	rm $(OBJECTS_BOTH) $(OBJECTS_SIM) $(OBJECTS_SERIAL)
 
+################################################################################
 
 sim: $(OBJECTS_BOTH) $(OBJECTS_SIM)
 
@@ -36,6 +39,7 @@ packet_test: packet_test.o packet.o
 
 crc_test: crc_test.o crc.o
 
+################################################################################
 
 vtime.o: vtime.c vtime.h
 

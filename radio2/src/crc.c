@@ -1,4 +1,4 @@
-// $Id: crc.c,v 1.1 2009-10-18 05:54:44 nick Exp $
+// $Id: crc.c,v 1.2 2009-10-21 12:24:16 nick Exp $
 
 // CRC algorithm as cargo-culted from:
 //     pycrc.py --model ccitt --generate c --algorithm table-driven
@@ -8,6 +8,8 @@
 #include <assert.h>
 
 #include "crc.h"
+
+/////////////////////////////////////////////////////////////////////  crc_table
 
 static const uint16_t crc_table[256] = {
     0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
@@ -44,6 +46,8 @@ static const uint16_t crc_table[256] = {
     0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
 };
 
+/////////////////////////////////////////////////////////////////////////  crc16
+
 uint16_t crc16(unsigned char *bytes, size_t nbyt) {
     unsigned short int crc = 0xFFFF;
     while (nbyt--) {
@@ -54,12 +58,16 @@ uint16_t crc16(unsigned char *bytes, size_t nbyt) {
     return crc;
 }
 
+/////////////////////////////////////////////////////////////////////  crc16_set
+
 void crc16_set(unsigned char *bytes, size_t nbyt) {
         assert(nbyt >= CRC16_LEN);
         uint16_t crc = crc16(bytes, nbyt-2);
         bytes[nbyt-2] = crc & 0xFF;
         bytes[nbyt-1] = crc >> 8;
 }
+
+///////////////////////////////////////////////////////////////////  crc16_check
 
 int crc16_check(unsigned char *bytes, size_t nbyt) {
         if (nbyt < CRC16_LEN) return 0;

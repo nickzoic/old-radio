@@ -1,4 +1,4 @@
-// $Id: topo.c,v 1.3 2009-10-18 10:06:02 nick Exp $
+// $Id: topo.c,v 1.4 2009-10-21 12:24:17 nick Exp $
 
 #include <assert.h>
 
@@ -7,6 +7,8 @@
 #define TOPO_TABLESIZE (30000)
 #define TOPO_TABLEOFFS (30)
 #define TOPO_MAXENTRIES (9000)
+
+////////////////////////////////////////////////////////////////////////////////
 
 topo_t *topo_new() {
     topo_t *topo = (topo_t *)malloc(sizeof(topo_t));
@@ -17,6 +19,8 @@ topo_t *topo_new() {
     topo->max_id = 0;
     return topo;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 void topo_insert(topo_t *topo, topo_entry_t entry) {
     assert(topo->entries < TOPO_MAXENTRIES);
@@ -32,6 +36,8 @@ void topo_insert(topo_t *topo, topo_entry_t entry) {
     if (entry.dst > topo->max_id) topo->max_id = entry.dst;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 void topo_file_read(topo_t *topo, FILE *fp) {
     char s[1024];
     while(fgets(s, sizeof(s), fp)) {
@@ -45,14 +51,20 @@ void topo_file_read(topo_t *topo, FILE *fp) {
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 node_id_t topo_max_id(topo_t *topo) {
     return topo->max_id;
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 void topo_free(topo_t *topo) {
     free(topo->table);
     free(topo);
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 topo_iter_t *topo_iter_new(topo_t *topo, node_id_t src) {
     topo_iter_t *iter = (topo_iter_t *)malloc(sizeof(topo_iter_t));
@@ -62,6 +74,8 @@ topo_iter_t *topo_iter_new(topo_t *topo, node_id_t src) {
     return iter;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
 topo_entry_t *topo_iter_next(topo_iter_t *iter) {
     while (1) {
         topo_entry_t *entry = &(iter->topo->table[iter->offs]);
@@ -70,6 +84,8 @@ topo_entry_t *topo_iter_next(topo_iter_t *iter) {
         if (entry->src == iter->src) return entry;
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 void topo_iter_free(topo_iter_t *iter) {
     free(iter);

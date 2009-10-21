@@ -1,4 +1,4 @@
-// $Id: virtloc.c,v 1.7 2009-10-21 07:10:27 nick Exp $
+// $Id: virtloc.c,v 1.8 2009-10-21 12:24:17 nick Exp $
 
 #include "virtloc.h"
 
@@ -7,14 +7,14 @@
 
 #define INITIAL_PERTURB (10)
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////  virtloc_init
 
 void virtloc_init(virtloc_t *virtloc, neigh_id_t id) {
     loc_zero(&virtloc->loc);
     if (id) loc_perturb(&virtloc->loc, INITIAL_PERTURB);
 }
 
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////  energy
 
 unsigned long energy(loc_t loc, neigh_table_t *neigh_table) {
     unsigned long energy = 0;
@@ -35,7 +35,7 @@ unsigned long energy(loc_t loc, neigh_table_t *neigh_table) {
     return valid ? energy : 0;
 }
 
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////  virtloc_recalc
 
 void virtloc_recalc(virtloc_t *virtloc, neigh_table_t *neigh_table) {
     
