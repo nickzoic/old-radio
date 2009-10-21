@@ -1,4 +1,4 @@
-// $Id: loc.c,v 1.3 2009-10-21 07:10:26 nick Exp $
+// $Id: loc.c,v 1.4 2009-10-21 12:07:42 nick Exp $
 
 // Abstract away the concept of a "location".
 // This could pretty easily be extended to be N-dimensional rather than always 3.
@@ -29,9 +29,9 @@ void loc_zero(loc_t *a) {
 }
 
 void loc_perturb(loc_t *a, unsigned int d) {
-    a->x += (rand()%(2*d)) - d;
-    a->y += (rand()%(2*d)) - d;
-    a->z += (rand()%(2*d)) - d;
+    a->x += (rand()%(2*d+1)) - d;
+    a->y += (rand()%(2*d+1)) - d;
+    a->z += (rand()%(2*d+1)) - d;
 }
 
 void loc_fprint(loc_t *a, FILE *fp) {

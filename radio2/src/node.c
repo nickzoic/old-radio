@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.23 2009-10-21 07:27:48 nick Exp $
+// $Id: node.c,v 1.24 2009-10-21 12:07:42 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -85,12 +85,12 @@ packet_t *node_beacon(node_t *node, vtime_t vtime) {
 void node_receive_beacon(node_t *node, vtime_t vtime, node_beacon_t *beacon, int nneigh) {
     printf(VTIME_FORMAT " %6d RecvBeacon %d %d %d\n", vtime, node->id,
            beacon->neigh[0].id, beacon->header.status, nneigh);
-            
+    int seen_self = 0;        
     if (node->status == NODE_STATUS_ASLEEP) {
         if (beacon->header.status == NODE_STATUS_WAKING) return;
         node_set_status(node, vtime, NODE_STATUS_WAKING);
         node->virtloc.loc = beacon->neigh[0].loc;
-        loc_perturb(&node->virtloc.loc, 100);
+        loc_perturb(&node->virtloc.loc, 5);
         printf(VTIME_FORMAT " %6d Wake %d %d %d\n", vtime, node->id,
                node->virtloc.loc.x, node->virtloc.loc.y, node->virtloc.loc.z);
         Node_callback(node, vtime + NODE_BEACON_PERIOD / 2, NULL);
@@ -99,7 +99,10 @@ void node_receive_beacon(node_t *node, vtime_t vtime, node_beacon_t *beacon, int
     }
     
     for (int i=0; i<nneigh; i++) {
-        if (beacon->neigh[i].id == node->id) continue;
+        if (beacon->neigh[i].id == node->id) {
+            seen_self = 1;
+            continue;
+        }
         neigh_t nnn = beacon->neigh[i];
         nnn.stratum++;
         printf(VTIME_FORMAT " %6d Neigh %d %d (%d %d %d) %g\n",
@@ -167,7 +170,7 @@ void node_timer(node_t *node, vtime_t vtime) {
     packet_t *p = node_beacon(node, vtime);
     
     Node_callback(node, vtime, p);
-    Node_callback(node, vtime + NODE_BEACON_PERIOD, NULL);
+    Node_callback(node, vtime + NODE_BEACON_PERIOD / 2 + rand() % NODE_BEACON_PERIOD, NULL);
 
     packet_free(p);
 }
