@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.22 2009-10-21 07:10:26 nick Exp $
+// $Id: node.c,v 1.23 2009-10-21 07:27:48 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,6 +87,7 @@ void node_receive_beacon(node_t *node, vtime_t vtime, node_beacon_t *beacon, int
            beacon->neigh[0].id, beacon->header.status, nneigh);
             
     if (node->status == NODE_STATUS_ASLEEP) {
+        if (beacon->header.status == NODE_STATUS_WAKING) return;
         node_set_status(node, vtime, NODE_STATUS_WAKING);
         node->virtloc.loc = beacon->neigh[0].loc;
         loc_perturb(&node->virtloc.loc, 100);

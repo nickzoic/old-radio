@@ -1,0 +1,158 @@
+#!/usr/bin/perl -w
+# $Id: plot3d,v 1.1 2009-10-21 07:27:48 nick Exp $
+
+use strict;
+use Data::Dumper;
+
+my ($filename, $interval) = @ARGV;
+$interval ||= 1_000_000;
+
+open(my $fp, $filename) or die "can't open $filename";
+
+$filename =~ s/\.log$//;
+$filename =~ s/.*\///;
+
+my $nodes = {};
+
+my $lasttime = 0;
+my $nexttime = 0;
+my $count = 0;
+
+while (defined($_ = <$fp>)) {
+	my ($t, $nn, $op, $stat, $x, $y, $z, @ne) = split;
+	next unless defined $t and $op eq 'Beacon';
+	
+	die "TIME OUT OF JOINT AT LINE $. TIME $t\n" if $t < $lasttime;
+	$lasttime = $t;
+	$nexttime ||= $t;
+	
+	while ($t > $nexttime) {
+		makeplot(sprintf('wrl/%s-%06d.wrl', $filename, $count), $nodes);
+		$nexttime += $interval;
+		$count++;
+	}
+	$nodes->{$nn} = [ [ $x, $y, $z, $stat ], [ @ne ] ];
+}
+makeplot(sprintf('wrl/%s-%06d.wrl', $filename, $count), $nodes);
+
+close($fp);
+
+##############################################################################
+
+sub makeplot {
+	my ($filename, $nodes) = @_;
+
+	print "Plotting $filename ... ", scalar keys %$nodes, " nodes\n";
+
+ 	open(my $fout, ">$filename");
+	
+	print $fout <<__EOF ;
+#VRML V2.0 utf8
+# plot3d
+Viewpoint {
+	position 0 0 1000
+	orientation 0 0 1 0
+}
+
+PROTO Node [ ] {
+    Shape { 
+	geometry Sphere { radius 7 }
+	appearance Appearance {
+	    material Material {
+		diffuseColor 0 1 0
+		specularColor 1 1 1
+		transparency .1
+	    }
+	}
+    }
+}
+PROTO Node0 [ ] {
+    Shape { 
+	geometry Sphere { radius 7 }
+	appearance Appearance {
+	    material Material {
+		diffuseColor 0 0 1
+		specularColor 1 1 1
+		transparency .1
+	    }
+	}
+    }
+}
+
+PROTO Node1 [ ] {
+    Shape { 
+	geometry Sphere { radius 7 }
+	appearance Appearance {
+	    material Material {
+		diffuseColor 1 0 0
+		specularColor 1 1 1
+		transparency .1
+	    }
+	}
+    }
+}
+
+PROTO Node2 [ ] {
+    Shape { 
+	geometry Sphere { radius 7 }
+	appearance Appearance {
+	    material Material {
+		diffuseColor 0 1 0
+		specularColor 1 1 1
+		transparency .1
+	    }
+	}
+    }
+}
+
+PROTO Node9 [ ] {
+    Shape { 
+	geometry Sphere { radius 7 }
+	appearance Appearance {
+	    material Material {
+		diffuseColor 1 1 0
+		specularColor 1 1 1
+		transparency .1
+	    }
+	}
+    }
+}
+
+Shape {
+	geometry IndexedLineSet {
+                coord DEF Nodes Coordinate {
+                        point [
+__EOF
+
+	my $nnum = 0;
+	my %nnum;
+	foreach my $n1 (sort { $a <=> $b } keys %$nodes) {
+		my ($x, $y, $z) = @{$nodes->{$n1}[0]};
+		print $fout "\t\t\t$x $y $z,\t# $nnum [$n1]\n";
+		$nnum{$n1} = $nnum;
+		$nnum++;
+	}
+	
+	print $fout "\t\t\t]\n\t\t}\n\t\tcoordIndex [\n";
+
+	foreach my $n1 (keys %$nodes) {
+		my $nn1 = $nnum{$n1};
+		next unless defined $nn1;
+		
+		my ($v1, $links) = @{$nodes->{$n1}};
+		foreach my $n2 (@$links) {
+			my $nn2 = $nnum{$n2};
+			next unless defined $nn2;
+			
+			print $fout "\t\t\t$nn1, $nn2, -1,\t# [$n1 -> $n2]\n";	
+		}
+	}
+
+	print $fout "\t\t]\n\t}\n}\n\n";
+
+	foreach my $n1 (keys %$nodes) {
+		my ($x, $y, $z, $stat) = @{$nodes->{$n1}[0]};
+		print $fout "Transform { translation $x $y $z children Node$stat { } } # $n1 \n";
+
+	}
+}

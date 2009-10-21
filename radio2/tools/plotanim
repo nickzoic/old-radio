@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
-# $Id: plotanim,v 1.1 2009-10-21 07:10:27 nick Exp $
+# $Id: plotanim,v 1.2 2009-10-21 07:27:48 nick Exp $
 
 use strict;
 use Data::Dumper;
 
-our $Revision = qw$Revision: 1.1 $[1];
+our $Revision = qw$Revision: 1.2 $[1];
 
 my $nodes = {};
 
@@ -15,7 +15,7 @@ my $count = 0;
 my ($st, $et);
 
 while (<>) {
-	my ($t, $nn, $op, $x, $y, $z, @ne) = split /\s+/;
+	my ($t, $nn, $op, $stat, $x, $y, $z, @ne) = split /\s+/;
 	next unless defined $t;
 	next unless $op eq 'Beacon';
 	die "TIME OUT OF JOINT AT LINE $. TIME $t\n" if $t < $lasttime;
