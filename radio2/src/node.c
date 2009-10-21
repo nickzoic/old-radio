@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.25 2009-10-21 12:24:16 nick Exp $
+// $Id: node.c,v 1.26 2009-10-21 22:55:27 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -170,7 +170,8 @@ void node_timer(node_t *node, vtime_t vtime) {
     packet_t *p = node_beacon(node, vtime);
     
     Node_callback(node, vtime, p);
-    Node_callback(node, vtime + NODE_BEACON_PERIOD / 2 + rand() % NODE_BEACON_PERIOD, NULL);
+    long delay = NODE_BEACON_PERIOD * ((float)rand() * 2 / RAND_MAX + 0.5);
+    Node_callback(node, vtime + delay, NULL);
 
     packet_free(p);
 }

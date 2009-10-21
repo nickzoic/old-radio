@@ -46,7 +46,6 @@ void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
         
         topo_entry_t *t;
         while ((t = topo_iter_next(topo_iter))) {
-            ///printf("@@@ %d -> %d\n", t->src, t->dst);
             queue_event_t e;
             e.vtime = sim_prop_delay(vtime, packet);
             if (e.vtime < Eschaton) {
