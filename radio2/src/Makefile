@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.16 2009-10-18 13:35:19 nick Exp $
+# $Id: Makefile,v 1.17 2009-10-21 07:10:26 nick Exp $
 
 CC=gcc
 
@@ -60,3 +60,5 @@ symbols.o: symbols.c symbols.h symbols.i
 radio.o: radio.c radio.h symbols.h crc.h
 
 serial.o: serial.c vtime.h node.h radio.h
+
+virtloc.o: virtloc.c virtloc.h loc.h vtime.h neigh.h node.h

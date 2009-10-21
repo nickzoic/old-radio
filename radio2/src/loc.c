@@ -1,4 +1,4 @@
-// $Id: loc.c,v 1.2 2009-09-24 03:01:34 nick Exp $
+// $Id: loc.c,v 1.3 2009-10-21 07:10:26 nick Exp $
 
 // Abstract away the concept of a "location".
 // This could pretty easily be extended to be N-dimensional rather than always 3.
@@ -11,9 +11,9 @@
 #include "loc.h"
 
 unsigned long loc_dist2(loc_t *a, loc_t *b) {
-    long dx = a->x - b->x;
-    long dy = a->y - b->y;
-    long dz = a->z - b->z;
+    register long dx = a->x - b->x;
+    register long dy = a->y - b->y;
+    register long dz = a->z - b->z;
     
     return dx*dx + dy*dy + dz*dz;
 }

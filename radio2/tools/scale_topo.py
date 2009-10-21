@@ -78,7 +78,8 @@ print "# field_size %f" % scale
 #    )
 
 for n1 in range(0, nnodes):
+    print "# %d\t\t\t\t%f\t%f" % (n1, nodes[n1][0] * scale, nodes[n1][1] * scale);
     for n2 in neigh[n1]:
         dist = sqrt((nodes[n1][0]-nodes[n2][0])**2 + (nodes[n1][1]-nodes[n2][1])**2)
-        print "%d %d 1.0 # %f" % (n1, n2, dist * scale)
+        print "%d\t%d\t# %f" % (n1, n2, dist * scale)
  

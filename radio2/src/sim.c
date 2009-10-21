@@ -14,7 +14,7 @@ node_t *Nodes;
 int N_nodes;
 topo_t *Topo;
 
-vtime_t Eschaton;
+vtime_t Eschaton = VTIME_INF;
 
 #define SIM_PROP_DELAY_US (1000)
 #define SIM_PROP_DELAY_PERBYTE_US (1000)
@@ -39,7 +39,7 @@ void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
 
     if (packet) {
         topo_iter_t *topo_iter = topo_iter_new(Topo, node->id);
-    
+        
         topo_entry_t *t;
         while ((t = topo_iter_next(topo_iter))) {
             ///printf("@@@ %d -> %d\n", t->src, t->dst);
@@ -97,12 +97,18 @@ int main(int argc, char *argv[]) {
     node_register_callback(sim_callback);
         
     // Send Node #0 a timer event to kick things off.
+    node_set_status(&Nodes[0], VTIME_ZERO, NODE_STATUS_ROOT);
     queue_event_t epoch_event = { VTIME_ZERO, &Nodes[0], NULL };
     queue_insert(Queue, epoch_event);
     
     // while the queue isn't empty, keep on popping
     queue_event_t e;
+    int vtime_tick = VTIME_ZERO;
     while ((e = queue_pop(Queue)).vtime != VTIME_INF) {
+        if (e.vtime > vtime_tick) {
+            fprintf(stderr, ".");
+            vtime_tick += VTIME_SECONDS;
+        }
         if (e.packet) {
             node_receive(e.node, e.vtime, e.packet);
             packet_free(e.packet);
@@ -114,6 +120,8 @@ int main(int argc, char *argv[]) {
     for (int i=0; i < N_nodes; i++) {
         node_deinit(&Nodes[i]);    
     }
+    
+    fprintf(stderr,"\n");
     
     free(Nodes);
     topo_free(Topo);    

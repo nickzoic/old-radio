@@ -1,4 +1,4 @@
-// $Id: node.h,v 1.14 2009-10-19 19:53:57 nick Exp $
+// $Id: node.h,v 1.15 2009-10-21 07:10:26 nick Exp $
 
 #ifndef _NODE_H
 #define _NODE_H
@@ -24,7 +24,7 @@ typedef neigh_stratum_t node_stratum_t;
 typedef struct node_s {
     
     node_id_t id;
-    int status;
+    unsigned char status;
     
     neigh_table_t *neigh_table;
     loc_t loc;
@@ -32,10 +32,21 @@ typedef struct node_s {
     virtloc_t virtloc;
     
     vtime_t flood_timeout;
+    vtime_t wake_time;
     
     void (*callback)(struct node_s *, vtime_t, packet_t *);
     
 } node_t;
+
+typedef struct node_beacon_header_s {
+    unsigned char packet_type;
+    unsigned char status;
+} node_beacon_header_t;
+
+typedef struct node_beacon_s {
+    node_beacon_header_t header;        
+    neigh_t neigh[];
+} node_beacon_t;
 
 void node_init(node_t *node, node_id_t id);
 node_t *node_new(node_id_t id);

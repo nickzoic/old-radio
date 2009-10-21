@@ -1,11 +1,11 @@
-// $Id: loc.h,v 1.4 2009-10-08 00:01:44 nick Exp $
+// $Id: loc.h,v 1.5 2009-10-21 07:10:26 nick Exp $
 
 #ifndef _LOC_H
 #define _LOC_H
 
 #include <stdio.h>
 
-typedef int16_t locx_t;
+typedef int32_t locx_t;
 
 typedef struct loc_s {
     locx_t x, y, z;
