@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.26 2009-10-21 22:55:27 nick Exp $
+// $Id: node.c,v 1.27 2009-11-15 23:35:52 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -145,7 +145,7 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
         
         default:
             printf(VTIME_FORMAT " %6d ERR Unknown packet type %02X length %ld\n",
-                   vtime, node->id, (packet->data)[0], packet->length);
+                   vtime, node->id, (packet->data)[0], (long)packet->length);
           break;
     }
     
