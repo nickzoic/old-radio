@@ -1,4 +1,4 @@
-// $Id: loc.c,v 1.5 2009-10-21 12:24:16 nick Exp $
+// $Id: loc.c,v 1.6 2009-11-15 23:33:54 nick Exp $
 
 // Abstract away the concept of a "location".
 // This could pretty easily be extended to be N-dimensional rather than always 3.
@@ -13,17 +13,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 unsigned long loc_dist2(loc_t *a, loc_t *b) {
-    register long dx = a->x - b->x;
-    register long dy = a->y - b->y;
-    register long dz = a->z - b->z;
+    long dx = b->x - a->x;
+    long dy = b->y - a->y;
+    long dz = b->z - a->z;
     
     return dx*dx + dy*dy + dz*dz;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-double loc_dist(loc_t *a, loc_t *b) {
-    return sqrt(loc_dist2(a,b));
+float loc_dist(loc_t *a, loc_t *b) {
+    return sqrtf(loc_dist2(a,b));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,4 +46,24 @@ void loc_perturb(loc_t *a, unsigned int d) {
 
 void loc_fprint(loc_t *a, FILE *fp) {
     fprintf(fp, " %+6d %+6d %+6d ", a->x, a->y, a->z);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+void loc_move_towards(loc_t *a, loc_t *b, unsigned int dist_limit) {
+    // move location a towards location b, limited to dist_limit distance.
+    long dx = b->x - a->x;
+    long dy = b->y - a->y;
+    long dz = b->z - a->z;
+    
+    unsigned long dist2 = dx*dx + dy*dy + dz*dz;
+    unsigned long dist_limit2 = dist_limit * dist_limit;
+    if (dist_limit2 >= dist2) {
+        *a = *b;
+    } else {
+        float frac = sqrtf((float)dist_limit2 / dist2);
+        a->x += dx * frac;
+        a->y += dy * frac;
+        a->z += dz * frac;
+    }
 }

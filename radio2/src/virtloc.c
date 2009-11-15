@@ -1,11 +1,12 @@
-// $Id: virtloc.c,v 1.8 2009-10-21 12:24:17 nick Exp $
+// $Id: virtloc.c,v 1.9 2009-11-15 23:33:54 nick Exp $
 
 #include "virtloc.h"
 
-#define K_ATTRACT (100ULL)
-#define K_REPEL   ((double)8.0E7)
+#define K_ATTRACT (1ULL)
+#define K_REPEL   ((float)8.0E6)
 
 #define INITIAL_PERTURB (10)
+#define MOVE_LIMIT (100)
 
 //////////////////////////////////////////////////////////////////  virtloc_init
 
@@ -39,17 +40,20 @@ unsigned long energy(loc_t loc, neigh_table_t *neigh_table) {
 
 void virtloc_recalc(virtloc_t *virtloc, neigh_table_t *neigh_table) {
     
-    unsigned long oldenergy = energy(virtloc->loc, neigh_table);
+    loc_t oldloc = virtloc->loc;
+    unsigned long oldenergy = energy(oldloc, neigh_table);
     if (!oldenergy) return;
     
     for (int i=1; i<1000; i++) {
-        loc_t newloc = virtloc->loc;
+        loc_t newloc = oldloc;
         loc_perturb(&newloc, (500/i)+1);
         
         unsigned long newenergy = energy(newloc, neigh_table);
         if (newenergy <= oldenergy) {
-            virtloc->loc = newloc;
+            oldloc = newloc;
             oldenergy = newenergy;
         }
     }
+    
+    loc_move_towards(&virtloc->loc, &oldloc, MOVE_LIMIT);
 }
