@@ -1,0 +1,10 @@
+#!/bin/bash
+
+TOPO=$1
+LABEL=${2:-`date +%Y%m%d%H%M%S`}
+TIME=${3:-60}
+
+( cd src; make ) && \
+src/sim topo/$TOPO.topo $TIME > log/$TOPO-$LABEL.log && \
+tools/plotanim log/$TOPO-$LABEL.log > wrl/$TOPO-$LABEL.wrl && \
+freewrl wrl/$TOPO-$LABEL.wrl
