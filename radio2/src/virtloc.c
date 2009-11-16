@@ -1,4 +1,4 @@
-// $Id: virtloc.c,v 1.10 2009-11-16 06:40:34 nick Exp $
+// $Id: virtloc.c,v 1.11 2009-11-16 10:10:33 nick Exp $
 
 #include "virtloc.h"
 
@@ -24,7 +24,9 @@ double energy(loc_t loc, neigh_table_t *neigh_table) {
     neigh_iter_t *iter = neigh_iter_new(neigh_table);
     neigh_t *n;
     while (( n = neigh_iter_next(iter) )) {
-        if (n->stratum == 1) {
+        if (n->stratum == 0 || n->stratum == NEIGH_STRATUM_INF) {
+            /* ignore */
+        } else if (n->stratum == 1) {
             energy += K_ATTRACT * loc_dist2(&loc, &n->loc);
             valid = 1;
         } else if (n->stratum >= 2) {

@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.28 2009-11-16 06:40:33 nick Exp $
+// $Id: node.c,v 1.29 2009-11-16 10:10:32 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,9 +8,10 @@
 
 #define NODE_FLOOD_TIMEOUT (1 * VTIME_SECONDS)
 #define NODE_BEACON_PERIOD (1 * VTIME_SECONDS)
-#define NODE_WAKEUP_PERIOD (3.5 * VTIME_SECONDS)
+#define NODE_WAKEUP_PERIOD (2.5 * VTIME_SECONDS)
 
 #define NODE_BEACON_SIZE (200)
+#define NODE_BEACON_MAXSTRAT (2)
 
 char *NODE_STATUS_STRINGS[] = { "ASLEEP", "WAKING", "AWAKE", "ROOT" };
 
@@ -90,7 +91,7 @@ packet_t *node_beacon(node_t *node, vtime_t vtime) {
     while (nneigh < maxneigh) {
         neigh_t *n = neigh_iter_next(iter);
         if (!n) break;
-        if ((n->stratum >= 1 && n->stratum <= 1) || n->stratum == NEIGH_STRATUM_INF) {
+        if ((n->stratum >= 1 && n->stratum <= NODE_BEACON_MAXSTRAT) || n->stratum == NEIGH_STRATUM_INF) {
             printf(" %d", n->id);
             beacon->neigh[nneigh] = *n;
             nneigh++;
