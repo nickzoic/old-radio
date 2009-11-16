@@ -1,4 +1,4 @@
-// $Id: loc.c,v 1.6 2009-11-15 23:33:54 nick Exp $
+// $Id: loc.c,v 1.7 2009-11-16 06:40:32 nick Exp $
 
 // Abstract away the concept of a "location".
 // This could pretty easily be extended to be N-dimensional rather than always 3.
@@ -22,8 +22,8 @@ unsigned long loc_dist2(loc_t *a, loc_t *b) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-float loc_dist(loc_t *a, loc_t *b) {
-    return sqrtf(loc_dist2(a,b));
+double loc_dist(loc_t *a, loc_t *b) {
+    return sqrt(loc_dist2(a,b));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

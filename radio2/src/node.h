@@ -1,4 +1,4 @@
-// $Id: node.h,v 1.15 2009-10-21 07:10:26 nick Exp $
+// $Id: node.h,v 1.16 2009-11-16 06:40:34 nick Exp $
 
 #ifndef _NODE_H
 #define _NODE_H
@@ -14,7 +14,8 @@
 #define NODE_STATUS_ASLEEP (0)
 #define NODE_STATUS_WAKING (1)
 #define NODE_STATUS_AWAKE (2)
-#define NODE_STATUS_ROOT (9)
+#define NODE_STATUS_ROOT (3)
+
 
 #define NODE_MAX_NEIGH (30)
 

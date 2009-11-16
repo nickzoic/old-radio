@@ -1,4 +1,4 @@
-// $Id: neigh.h,v 1.14 2009-10-21 12:07:42 nick Exp $
+// $Id: neigh.h,v 1.15 2009-11-16 06:40:33 nick Exp $
 
 #ifndef _NEIGH_H
 #define _NEIGH_H
@@ -14,6 +14,8 @@
 
 typedef uint16_t neigh_id_t;
 typedef uint8_t neigh_stratum_t;
+
+#define NEIGH_STRATUM_INF (10)
 
 typedef struct neigh_s {
     neigh_id_t id;
