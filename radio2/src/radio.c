@@ -1,4 +1,4 @@
-// $Id: radio.c,v 1.4 2009-10-18 07:31:22 nick Exp $
+// $Id: radio.c,v 1.5 2009-11-17 03:51:43 nick Exp $
 
 // This handles the lowest level of the protocol stack: encoding bytes into
 // symbols and pushing them out the serial port.  It doesn't do much in the
@@ -158,6 +158,11 @@ packet_t *radio_recv(radio_t *radio, vtime_t timeout) {
     }
     
     if (!stopped) {
+	//fprintf(stderr, "DUMP %d / %d:", n, MAX_FRAME);
+	//for (int j=0; j<n; j++) {
+	//    fprintf(stderr, " %02X", recv_buffer[j]);
+	//}
+	//fprintf(stderr, "\n");
         fprintf(stderr, "WARNING: recv_packet overrun\n");
         return 0;
     }

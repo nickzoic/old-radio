@@ -1,4 +1,4 @@
-// $Id: vtime.h,v 1.9 2009-11-15 23:35:52 nick Exp $
+// $Id: vtime.h,v 1.10 2009-11-17 03:51:43 nick Exp $
 
 #ifndef _VTIME_H
 #define _VTIME_H
@@ -17,12 +17,12 @@ typedef uint64_t vtime_t;
 vtime_t vtime_from_wall();
 
 #if __WORDSIZE == 64
-#define VTIME_FORMAT "%012ld"
+#define VTIME_FORMAT "%012lu"
 #else
-#define VTIME_FORMAT "%012lld"
+#define VTIME_FORMAT "%012llu"
 #endif
 
-#define VTIME_FORMAT_STR "%06ld.%06ld"
-#define VTIME_FORMAT_ARG(x) ((long)(x)/VTIME_SECONDS),((long)(x)%VTIME_SECONDS)
+#define VTIME_FORMAT_STR "%06lu.%06lu"
+#define VTIME_FORMAT_ARG(x) ((unsigned long)(x)/VTIME_SECONDS),((unsigned long)(x)%VTIME_SECONDS)
 
 #endif

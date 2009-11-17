@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.18 2009-10-21 12:24:16 nick Exp $
+# $Id: Makefile,v 1.19 2009-11-17 03:51:43 nick Exp $
 
 CC=gcc
 
@@ -9,12 +9,12 @@ CFLAGS=-Wall -std=gnu99 -O2 -g
 LDFLAGS=-lm
 
 OBJECTS_BOTH=vtime.o loc.o packet.o node.o neigh.o virtloc.o
-OBJECTS_SIM=topo.o sim.o queue.o
-OBJECTS_SERIAL=serial.o radio.o crc.o symbols.o
+OBJECTS_SIM=topo.o queue.o
+OBJECTS_SERIAL=radio.o crc.o symbols.o
 
 ################################################################################
 
-all: sim serial
+all: sim serial topostats
 
 test: queue_test symbols_test crc_test packet_test
 	./queue_test
@@ -27,9 +27,11 @@ clean:
 
 ################################################################################
 
-sim: $(OBJECTS_BOTH) $(OBJECTS_SIM)
+sim: sim.o $(OBJECTS_BOTH) $(OBJECTS_SIM)
 
-serial: $(OBJECTS_BOTH) $(OBJECTS_SERIAL)
+serial: serial.o $(OBJECTS_BOTH) $(OBJECTS_SERIAL)
+
+topostats: topostats.o $(OBJECTS_BOTH) $(OBJECTS_SERIAL)
 
 queue_test: queue_test.o queue.o
 
