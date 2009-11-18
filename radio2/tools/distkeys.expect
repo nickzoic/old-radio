@@ -1,0 +1,9 @@
+#!/usr/bin/expect -f
+
+set target [lrange $argv 0 0]
+
+spawn scp -o StrictHostKeyChecking=no -rp distkeys_files/.ssh ecsetemp@$target:
+match_max 100000
+expect {
+	"*?assword:*"    { send -- "ecse2009\r"; exp_continue }
+}
