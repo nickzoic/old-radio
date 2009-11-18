@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+
+set target [lrange $argv 0 0]
+
+spawn ssh -o StrictHostKeyChecking=no ecsetemp@$target
+match_max 100000
+
+expect {
+  -ex "~]$" {
+    send -- "su root -c 'gpasswd -a ecsetemp uucp'\r";
+    expect {
+      "*?assword:*" {
+        send -- "&ecsemonash\r";
+	expect {
+	  -ex "~]$" {
+	    exit 0
+	  }
+        }
+      }
+    }
+  }
+}
