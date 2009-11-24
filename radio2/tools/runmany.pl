@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: runmany.pl,v 1.2 2009-11-24 04:05:39 nick Exp $
+# $Id: runmany.pl,v 1.3 2009-11-24 06:00:43 nick Exp $
 
 use strict;
 use File::Temp qw'tempfile tempdir';
@@ -8,7 +8,7 @@ use List::Util qw'min';
 my $program = shift;
 my $args = join ' ', @ARGV;
 
-my @radios = map { [ /(\w+)\s+(/dev/radio(\d+))/ ] } <>;
+my @radios = map { [ /(\w+)\s+(\/dev\/radio(\d+))/ ] } <STDIN>;
 my $min_id = min( map { $_->[2] } @radios );
 
 printf STDERR "RUNNING %d RADIOS!\n", scalar @radios;
