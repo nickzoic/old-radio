@@ -3,22 +3,25 @@
 
 import heapq
 import random
-from math import sqrt
+from math import sqrt, pi, sin, cos, acos
 from sys import argv, exit, stderr
 
 # parameters
 
 if len(argv) < 2:
-    stderr.write("Usage: %s <nnodes> <nlinks> <rrange> <seed>\n" % argv[0]);
+    stderr.write("Usage: %s <nnodes> <nlinks> <rrange> <flags> <seed>\n" % argv[0]);
     exit(1)
     
 nnodes = len(argv)>1 and int(argv[1]) or 400
 nlinks = len(argv)>2 and int(argv[2]) or nnodes * 5
 rrange = len(argv)>3 and float(argv[3]) or None
-seed = len(argv)>4 and argv[4] or None
+flags = len(argv)>4 and argv[4] or ""
+seed = len(argv)>5 and argv[5] or None
 
 random.seed(seed)
-    
+
+spherical = "S" in flags
+
 # links is a heapq of tuples (-distance^2, node1, node2)
 # -distance^2 because that way the longest item is on top, and
 # we don't really need to bother sqrting things just to sort them.
@@ -33,9 +36,23 @@ nodes = []
 qlinks = 0
 
 for n in range(0, nnodes):
-    node1 = ( random.random(), random.random() )
+    x = random.random()
+    y = random.random()
+    if spherical:
+	x = x * 2 * pi
+        y = acos( 2 * y - 1 )
+    node1 = ( x, y)
     for m, node2 in enumerate(nodes):
-        dist2 = (node1[0]-node2[0])**2 + (node1[1]-node2[1])**2
+	if spherical:
+	    x1 = cos(node1[0])*sin(node1[1])
+	    y1 = sin(node1[0])*sin(node1[1])
+	    z1 = cos(node1[1])
+	    x2 = cos(node2[0])*sin(node2[1])
+	    y2 = sin(node2[0])*sin(node2[1])
+	    z2 = cos(node2[1])
+            dist2 = (x1-x2)**2 + (y1-y2)**2 + (z1-z2)**2
+	else:
+            dist2 = (node1[0]-node2[0])**2 + (node1[1]-node2[1])**2
         
         if qlinks < nlinks:
             # We collect the first nlinks links into the heapqueue
@@ -52,7 +69,7 @@ for n in range(0, nnodes):
 
 # work out radio range from length of longest link.    
 nrange = sqrt(-links[0][0])
-if rrange:
+if rrange and not spherical:
     scale = rrange / nrange
 else:
     scale = 1.0
@@ -68,6 +85,8 @@ print "# NLINKS %d" % nlinks
 print "# mean_degree %f" % (nlinks * 2.0 / nnodes)
 print "# RRANGE %f" % (rrange or nrange) 
 print "# field_size %f" % scale
+print "# flags %s" % flags
+print "# seed %s" % seed
 
 #for n in range(0, nnodes):
 #    print "%d %f %f %s" % (
