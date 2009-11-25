@@ -15,6 +15,7 @@ foreach my $line (<>) {
 
 	my $result = `./distkeys.expect $host`;
 	next unless $result =~ /authorized_keys/;
+
 	print STDERR "KEYS";
 
 	print "$host\n";
