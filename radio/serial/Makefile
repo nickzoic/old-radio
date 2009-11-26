@@ -1,9 +1,9 @@
-# $Id: Makefile,v 1.25 2009-08-05 06:18:30 nick Exp $
+# $Id: Makefile,v 1.26 2009-11-26 07:52:31 nick Exp $
 
 CFLAGS=-std=gnu99 -O2 -Wall
 LDLIBS=-lpthread
 
-PROGS=send_packets recv_packets chatter tchatter virtloc tvirtloc spy topofind
+PROGS=send_packets recv_packets chatter tchatter virtloc tvirtloc spy topofind test_symbols
 
 all: ${PROGS}
 
@@ -62,7 +62,8 @@ recv_packets.o: recv_packets.c sendrecv.h sendrecv_packets.h
 test_symbols: test_symbols.o symbols.o
 
 symbols.i: symbols.py
-	./symbols.py 128 3 5 4 8 55 AA FF > symbols.i
+#	./symbols.py 128 3 5 4 8 55 AA FF > symbols.i
+	./symbols.py 64 3 4 5 6 55 AA FF > symbols.i
 
 symbols.o: symbols.c symbols.h symbols.i
 

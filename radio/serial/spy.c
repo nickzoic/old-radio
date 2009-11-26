@@ -1,4 +1,4 @@
-// $Id: spy.c,v 1.4 2009-02-11 23:21:42 nick Exp $
+// $Id: spy.c,v 1.5 2009-11-26 07:52:32 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +32,9 @@ int main(int argc, char **argv) {
     }
     
     initialize_port(fd, baud_rate);
-    
+   
+    fprintf(stderr, "Port initialized ...\n");
+ 
     int nsym = 0;
     int valid = 0;
     unsigned char symbols[10];
@@ -41,7 +43,10 @@ int main(int argc, char **argv) {
     while(1) {
         unsigned char x = 0;
         int n = read(fd, &x, 1);
-        if (n != 1) continue;
+        if (n != 1) {
+		usleep(1000);
+		continue;
+	}
         
         int x_valid = symbol_valid(x);
         if ((nsym == 8) || (x_valid && !valid) || (!x_valid && valid)) {

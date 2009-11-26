@@ -1,4 +1,4 @@
-// $Id: topofind.c,v 1.2 2009-06-24 05:52:00 nick Exp $
+// $Id: topofind.c,v 1.3 2009-11-26 07:52:32 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,8 +35,8 @@ int main(int argc, char **argv) {
 
     char *device = (argc>1)?argv[1]:"/dev/ttyUSB0";
     int baud_rate = (argc>2)?atoi(argv[2]):9600;
-    int identifier = (argc>3)?atoi(argv[3]):(int)getpid();
-
+    unsigned int identifier = (argc>3)?atoi(argv[3]):(int)getpid();
+    unsigned int serial = 0;
     
     // seed the PRNG from some randomish stuff ...
     struct timeval tv;
@@ -60,7 +60,9 @@ int main(int argc, char **argv) {
                 n = recv_packet(fd, buffer, sizeof(buffer), 100);
             
                 if (n > 2 && buffer[0] == 0xFF && crc16_check(buffer, n)) {
-                    printf("%d -> %d\n", buffer[2] * 256 + buffer[1], identifier);
+		    unsigned int ridentifier = buffer[2] * 256 + buffer[1];
+		    unsigned int rserial = buffer[4] * 256 + buffer[3];
+                    printf("%d <- %d %d\n", identifier, ridentifier, rserial);
                 }
             }
             
@@ -74,9 +76,12 @@ int main(int argc, char **argv) {
         } while(!Interrupted && timeout > 0);
         
         buffer[0] = 0xFF;
-	buffer[1] = (identifier % 256);
-	buffer[2] = (identifier / 256);
-        crc16_set(buffer, 5);
-        send_packet(fd, buffer, 5);
+	buffer[1] = identifier % 256;
+	buffer[2] = identifier / 256;
+	buffer[3] = serial % 256;
+	buffer[4] = serial / 256;
+        crc16_set(buffer, 7);
+        send_packet(fd, buffer, 7);
+	serial++;
     }
 }

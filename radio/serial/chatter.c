@@ -1,4 +1,4 @@
-/* $Id: chatter.c,v 1.8 2009-02-11 06:36:38 nick Exp $ */
+/* $Id: chatter.c,v 1.9 2009-11-26 07:52:31 nick Exp $ */
 
 // Chattering with primitive CSMA/CA
 
@@ -24,9 +24,9 @@ void handle_int(int x) {
     Interrupted = 1;
 }
 
-#define TIMEOUT (5000)
-#define HOLDOFFMAX (1000)
-#define HOLDOFFMIN (200)
+#define TIMEOUT (500)
+#define HOLDOFFMAX (100)
+#define HOLDOFFMIN (20)
 
 int main(int argc, char **argv) {
     if (argc<2) {

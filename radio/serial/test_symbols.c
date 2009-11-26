@@ -1,4 +1,4 @@
-/* $Id: test_symbols.c,v 1.7 2009-02-11 01:10:20 nick Exp $ */
+/* $Id: test_symbols.c,v 1.8 2009-11-26 07:52:32 nick Exp $ */
 /* Test a ridiculously large number of byte strings of varying length
  * to make sure they round-trip properly through bytes_to_symbols and
  * symbols_to_bytes.  
@@ -18,9 +18,10 @@ void print_symbol(int sym) {
     char x2 = (x & 0x04)?'1':'0';	
     char x3 = (x & 0x08)?'1':'0';	
     char x4 = (x & 0x10)?'1':'0';	
-    char x5 = (x & 0x20)?'1':'0';	
+    char x5 = (x & 0x20)?'1':'0';
     char x6 = (x & 0x40)?'1':'0';	
-    printf("S %02X %3d %c%c%c%c%c%c%c\n", sym, x, x0, x1, x2, x3, x4, x5, x6);
+    char x7 = (x & 0x80)?'1':'0';	
+    printf("S %02X %3d %c%c%c%c%c%c%c%c\n", sym, x, x0, x1, x2, x3, x4, x5, x6, x7);
 }
 
 void print_byte(unsigned char byt) {
@@ -37,9 +38,9 @@ void print_byte(unsigned char byt) {
 
 int main(int argc, char **argv) {
 
-    unsigned char sym[800];
-    unsigned char byte1[701];
-    unsigned char byte2[701];
+    unsigned char sym[2000];
+    unsigned char byte1[501];
+    unsigned char byte2[501];
 
     printf("Testing Symbols");
     for (long int c=0; c<100000; c++) {
@@ -47,7 +48,7 @@ int main(int argc, char **argv) {
 		putchar('.');  
 		fflush(stdout);
 	}
-	int len = rand() % 700;
+	int len = (c < 500) ? c : (rand() % 500);
 	
 	for (int i=0; i<len; i++) {
 	    byte1[i] = rand() & 0xFF;
