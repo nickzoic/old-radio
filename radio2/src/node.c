@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.29 2009-11-16 10:10:32 nick Exp $
+// $Id: node.c,v 1.30 2010-01-12 09:55:57 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -92,7 +92,7 @@ packet_t *node_beacon(node_t *node, vtime_t vtime) {
         neigh_t *n = neigh_iter_next(iter);
         if (!n) break;
         if ((n->stratum >= 1 && n->stratum <= NODE_BEACON_MAXSTRAT) || n->stratum == NEIGH_STRATUM_INF) {
-            printf(" %d", n->id);
+            printf("  %d %d", n->id, n->stratum);
             beacon->neigh[nneigh] = *n;
             nneigh++;
         }

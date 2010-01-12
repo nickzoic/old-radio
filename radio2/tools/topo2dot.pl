@@ -6,6 +6,7 @@ use List::Util qw(min max);
 my %edges = ();
 
 while (<>) {
+	next if /^#/;
 	my ($n1, $n2, $w) = split;
 	($n1, $n2) = ($n2, $n1) if $n2 < $n1;
 	$w ||= 1.0;

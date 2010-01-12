@@ -1,4 +1,4 @@
-// $Id: radio.c,v 1.5 2009-11-17 03:51:43 nick Exp $
+// $Id: radio.c,v 1.6 2010-01-12 09:55:57 nick Exp $
 
 // This handles the lowest level of the protocol stack: encoding bytes into
 // symbols and pushing them out the serial port.  It doesn't do much in the
@@ -86,8 +86,12 @@ void radio_send(radio_t *radio, packet_t *packet) {
     int n = 0;
     while (n < frame_length) {
         int e = write(radio->fd, send_buffer+n, frame_length - n);
-        assert(e>=0);
-        n += e;    
+        if (e < 0) {
+	    fprintf(stderr, "WARNING: write failed %d %s\n", errno, strerror(errno));
+	    usleep(1000);
+	} else {
+	    n += e;
+	}
     }
 }
 

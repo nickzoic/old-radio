@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
-# $Id: plotanim,v 1.4 2009-11-16 06:40:45 nick Exp $
+# $Id: plotanim,v 1.5 2010-01-12 09:55:59 nick Exp $
 
 use strict;
 use Data::Dumper;
 
-our $Revision = qw$Revision: 1.4 $[1];
+our $Revision = qw$Revision: 1.5 $[1];
 
 my $nodes = {};
 
@@ -80,7 +80,10 @@ DEF NODE$nn Transform {
 	    children [
 		Text {
 		    string [ "$nn" ]
-		    fontStyle FontStyle { size 10 }
+		    fontStyle FontStyle {
+			size 20
+			justify ["MIDDLE" "MIDDLE"]
+		    }
 		}
 	    ]
 	    axisOfRotation 0 0 0
