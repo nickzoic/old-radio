@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: plot3d,v 1.1 2009-10-21 07:27:48 nick Exp $
+# $Id: plot3d,v 1.2 2010-01-12 03:27:07 nick Exp $
 
 use strict;
 use Data::Dumper;
@@ -49,91 +49,66 @@ sub makeplot {
 	print $fout <<__EOF ;
 #VRML V2.0 utf8
 # plot3d
+
+Background {
+  groundColor [ 1 1 1 ]
+  skyColor [ 1 1 1 ]
+}
+
 Viewpoint {
-	position 0 0 1000
-	orientation 0 0 1 0
+  position 0 0 1000
+  orientation 0 0 1 0
 }
 
-PROTO Node [ ] {
-    Shape { 
-	geometry Sphere { radius 7 }
-	appearance Appearance {
-	    material Material {
-		diffuseColor 0 1 0
-		specularColor 1 1 1
-		transparency .1
-	    }
-	}
-    }
-}
-PROTO Node0 [ ] {
-    Shape { 
-	geometry Sphere { radius 7 }
-	appearance Appearance {
-	    material Material {
-		diffuseColor 0 0 1
-		specularColor 1 1 1
-		transparency .1
-	    }
-	}
-    }
+DEF blackpaint Appearance {
+  material Material {
+    diffuseColor 0 0 0
+    specularColor 0 0 0
+  }
 }
 
-PROTO Node1 [ ] {
-    Shape { 
-	geometry Sphere { radius 7 }
-	appearance Appearance {
-	    material Material {
-		diffuseColor 1 0 0
-		specularColor 1 1 1
-		transparency .1
-	    }
-	}
-    }
+DEF whitepaint Appearance {
+  material Material {
+    diffuseColor 1 1 1
+    specularColor 1 1 1
+  }
 }
 
-PROTO Node2 [ ] {
-    Shape { 
-	geometry Sphere { radius 7 }
-	appearance Appearance {
-	    material Material {
-		diffuseColor 0 1 0
-		specularColor 1 1 1
-		transparency .1
-	    }
-	}
-    }
+DEF whiteball Shape {
+#  appearance USE whitepaint
+  appearance Appearance { } 
+  geometry Sphere {
+    radius 14
+  }
 }
 
-PROTO Node9 [ ] {
-    Shape { 
-	geometry Sphere { radius 7 }
-	appearance Appearance {
-	    material Material {
-		diffuseColor 1 1 0
-		specularColor 1 1 1
-		transparency .1
-	    }
-	}
-    }
+DEF label FontStyle {
+  size 18
+  justify ["MIDDLE" "FIRST"]
+  family ["SANS" "PLAIN"]
 }
 
 Shape {
-	geometry IndexedLineSet {
-                coord DEF Nodes Coordinate {
-                        point [
+  appearance USE blackpaint
+  geometry IndexedLineSet {
+    coord Coordinate {
+      point [
 __EOF
 
 	my $nnum = 0;
 	my %nnum;
 	foreach my $n1 (sort { $a <=> $b } keys %$nodes) {
 		my ($x, $y, $z) = @{$nodes->{$n1}[0]};
-		print $fout "\t\t\t$x $y $z,\t# $nnum [$n1]\n";
+		print $fout "\t$x $y $z,\t# $nnum [$n1]\n";
 		$nnum{$n1} = $nnum;
 		$nnum++;
 	}
 	
-	print $fout "\t\t\t]\n\t\t}\n\t\tcoordIndex [\n";
+	print $fout <<__EOF;
+      ]
+    }
+    coordIndex [
+__EOF
 
 	foreach my $n1 (keys %$nodes) {
 		my $nn1 = $nnum{$n1};
@@ -144,15 +119,44 @@ __EOF
 			my $nn2 = $nnum{$n2};
 			next unless defined $nn2;
 			
-			print $fout "\t\t\t$nn1, $nn2, -1,\t# [$n1 -> $n2]\n";	
+			print $fout "\t$nn1, $nn2, -1,\t# [$n1 -> $n2]\n";	
 		}
 	}
 
-	print $fout "\t\t]\n\t}\n}\n\n";
+	print $fout <<__EOF;
+    ]
+  }
+}
+__EOF
 
 	foreach my $n1 (keys %$nodes) {
 		my ($x, $y, $z, $stat) = @{$nodes->{$n1}[0]};
-		print $fout "Transform { translation $x $y $z children Node$stat { } } # $n1 \n";
+		print $fout <<__EOF;
 
+Transform {  
+  translation $x $y $z
+  children [
+    Billboard {
+      children [
+	Transform {
+ 	  translation 0 -7 15
+	  children [
+            Shape {
+	      appearance USE blackpaint
+              geometry Text {
+    	        string [ "$n1" ]
+	        fontStyle USE label
+              }
+	    }
+          ]
+        }
+	USE whiteball
+      ]
+      axisOfRotation 0 0 0
+    }
+  ]
+}
+
+__EOF
 	}
 }
