@@ -1,4 +1,4 @@
-// $Id: topo.c,v 1.4 2009-10-21 12:24:17 nick Exp $
+// $Id: topo.c,v 1.5 2010-01-29 23:57:46 nick Exp $
 
 #include <assert.h>
 
@@ -41,12 +41,19 @@ void topo_insert(topo_t *topo, topo_entry_t entry) {
 void topo_file_read(topo_t *topo, FILE *fp) {
     char s[1024];
     while(fgets(s, sizeof(s), fp)) {
-        int src, dst;
-        float prob = 1.0;
+        int node1, node2;
+        float prob12 = 1.0;
+        float prob21 = 1.0;
         
-        if (sscanf(s, "%d %d %f", &src, &dst, &prob) >= 2) {
-            topo_entry_t entry = { src, dst, prob };
-            topo_insert(topo, entry);
+        if (sscanf(s, "%d %d %f %f", &node1, &node2, &prob12, &prob21) >= 2) {
+            if (prob12 > 0.0) {
+                topo_entry_t entry = { node1, node2, prob12 };
+                topo_insert(topo, entry);                
+            }
+            if (prob21 > 0.0) {
+                topo_entry_t entry = { node2, node1, prob21 };
+                topo_insert(topo, entry);                
+            }
         }
     }
 }

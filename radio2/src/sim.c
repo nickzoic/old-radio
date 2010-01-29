@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "loc.h"
 #include "vtime.h"
 #include "topo.h"
 #include "node.h"
@@ -20,6 +21,39 @@ vtime_t Eschaton = VTIME_INF;
 #define SIM_PROP_DELAY_MIN (1000 * VTIME_MICROS)
 #define SIM_PROP_DELAY_FUZZ (1000 * VTIME_MICROS)
 #define SIM_TIMER_DELAY_FUZZ (1000 * VTIME_MICROS)
+
+////////////////////////////////////////////////////////////////  sim_route_test
+
+int sim_route_test_one(node_id_t node1, node_id_t node2, int maxstrat) {
+    node_id_t hop = node1;
+    for (int i=1; i<100; i++) {
+	hop = node_route_mfr(&Nodes[hop], node2, Nodes[node2].virtloc.loc, maxstrat);
+	if (hop == node2) { return i; }
+	if (hop == NODE_ID_INVALID) { return 0; }
+    }
+    return 0;
+}
+
+void sim_route_test(vtime_t vtime) {
+
+    int success1 = 2;
+    int success2 = 2;
+
+    for (int i=1; i < N_nodes; i++) {
+	int h11 = sim_route_test_one(i, 0, 1);
+	int h12 = sim_route_test_one(0, i, 1);
+	if (h11) success1++;
+	if (h12) success1++;
+	int h21 = sim_route_test_one(i, 0, 2);
+	int h22 = sim_route_test_one(0, i, 2);
+	if (h21) success2++;
+	if (h22) success2++;
+
+    	printf(VTIME_FORMAT " %d Route %d %d  %d %d\n", vtime, i, h11, h12, h21, h22);
+    }
+    printf(VTIME_FORMAT " 0 Route_Test %f %f\n", vtime,
+	 (double)success1 / N_nodes / 2, (double)success2 / N_nodes / 2);
+}
 
 ////////////////////////////////////////////////////////////////  sim_prop_delay
 
@@ -107,10 +141,11 @@ int main(int argc, char *argv[]) {
     
     // while the queue isn't empty, keep on popping
     queue_event_t e;
-    int vtime_tick = VTIME_ZERO;
+    vtime_t vtime_tick = VTIME_ZERO;
     while ((e = queue_pop(Queue)).vtime != VTIME_INF) {
         if (e.vtime > vtime_tick) {
             fprintf(stderr, ".");
+	    sim_route_test(vtime_tick);
             vtime_tick += VTIME_SECONDS;
         }
         if (e.packet) {

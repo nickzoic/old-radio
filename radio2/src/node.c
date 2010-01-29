@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.30 2010-01-12 09:55:57 nick Exp $
+// $Id: node.c,v 1.31 2010-01-29 23:57:46 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,6 +49,39 @@ void node_set_status(node_t *node, vtime_t vtime, int status) {
 
 void node_register_callback(void (*callback)(node_t *, vtime_t, packet_t *)) {
     Node_callback = callback;
+}
+
+////////////////////////////////////////////////////////////////  node_route_mfr
+
+node_id_t node_route_mfr(node_t *node, node_id_t dest_id, loc_t dest_loc, int maxstrat) {
+
+    unsigned long min_dist2 = loc_dist2(&node->virtloc.loc, &dest_loc);
+    neigh_t *min_neigh = NULL;
+
+    neigh_iter_t *iter = neigh_iter_new(node->neigh_table);
+    neigh_t *n;
+
+    while ((n = neigh_iter_next(iter))) {
+	if (n->stratum <= maxstrat) {
+	    if (n->id == dest_id) {
+		min_neigh = n;
+		break;
+	    }
+	    unsigned long dist2 = loc_dist2(&n->loc, &dest_loc);
+	    if (dist2 < min_dist2) {
+		min_dist2 = dist2;
+		min_neigh = n;
+	    }
+	}
+    }
+
+    if (min_neigh) {
+	if (min_neigh->stratum == 1) return min_neigh->id;
+	return node_route_mfr(node, min_neigh->id, min_neigh->loc, min_neigh->stratum - 1);
+    }
+
+    return NODE_ID_INVALID;
+    
 }
 
 ///////////////////////////////////////////////////////////////  node_neigh_dump

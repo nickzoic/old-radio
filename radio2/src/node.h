@@ -1,4 +1,4 @@
-// $Id: node.h,v 1.16 2009-11-16 06:40:34 nick Exp $
+// $Id: node.h,v 1.17 2010-01-29 23:57:46 nick Exp $
 
 #ifndef _NODE_H
 #define _NODE_H
@@ -21,6 +21,8 @@
 
 typedef neigh_id_t node_id_t;
 typedef neigh_stratum_t node_stratum_t;
+
+#define NODE_ID_INVALID ((node_id_t)-1)
 
 typedef struct node_s {
     
@@ -54,6 +56,8 @@ node_t *node_new(node_id_t id);
 void node_set_status(node_t *node, vtime_t vtime, int status);
 
 void node_register_callback(void (*sender)(node_t *, vtime_t, packet_t *));
+
+node_id_t node_route_mfr(node_t *node, node_id_t dest_id, loc_t dest_loc, int maxstrat);
 
 void node_receive(node_t *node, vtime_t vtime, packet_t *packet);
 void node_timer(node_t *node, vtime_t vtime);

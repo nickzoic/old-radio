@@ -1,4 +1,4 @@
-// $Id: loc.h,v 1.7 2009-11-16 06:40:33 nick Exp $
+// $Id: loc.h,v 1.8 2010-01-29 23:57:46 nick Exp $
 
 #ifndef _LOC_H
 #define _LOC_H
