@@ -1,4 +1,4 @@
-// $Id: node.c,v 1.31 2010-01-29 23:57:46 nick Exp $
+// $Id: node.c,v 1.32 2010-01-31 00:02:21 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +43,13 @@ void node_set_status(node_t *node, vtime_t vtime, int status) {
     printf(VTIME_FORMAT " %6d Status %d:%s %d:%s\n", vtime, node->id,
             node->status, NODE_STATUS_STRINGS[node->status], status, NODE_STATUS_STRINGS[status]);
     node->status = status;
+    if (status != NODE_STATUS_ASLEEP && Node_callback) {
+    	long delay = 0;
+	if (status != NODE_STATUS_ROOT) {
+		delay += NODE_BEACON_PERIOD * ((float)rand() / RAND_MAX + 0.5);
+	}
+    	Node_callback(node, vtime + delay, NULL);
+    }
 }
 
 ////////////////////////////////////////////////////////  node_register_callback

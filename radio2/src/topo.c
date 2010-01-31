@@ -1,4 +1,4 @@
-// $Id: topo.c,v 1.5 2010-01-29 23:57:46 nick Exp $
+// $Id: topo.c,v 1.6 2010-01-31 00:02:21 nick Exp $
 
 #include <assert.h>
 
@@ -48,7 +48,7 @@ void topo_file_read(topo_t *topo, FILE *fp) {
         if (sscanf(s, "%d %d %f %f", &node1, &node2, &prob12, &prob21) >= 2) {
             if (prob12 > 0.0) {
                 topo_entry_t entry = { node1, node2, prob12 };
-                topo_insert(topo, entry);                
+                topo_insert(topo, entry);        
             }
             if (prob21 > 0.0) {
                 topo_entry_t entry = { node2, node1, prob21 };

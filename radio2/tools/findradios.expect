@@ -13,7 +13,17 @@ expect {
         send -- "&ecsemonash\r";
 	expect {
 	  -ex "~]$" {
-	    exit 0
+	    send -- "su root -c 'chown ecsetemp.uucp /dev/radio*'\r";
+            expect {
+              "*?assword:*" {
+                send -- "&ecsemonash\r";
+	        expect {
+	          -ex "~]$" {
+	             exit 0
+                  }
+                }
+              }
+            }
 	  }
         }
       }

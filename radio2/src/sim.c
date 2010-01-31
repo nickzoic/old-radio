@@ -36,23 +36,21 @@ int sim_route_test_one(node_id_t node1, node_id_t node2, int maxstrat) {
 
 void sim_route_test(vtime_t vtime) {
 
-    int success1 = 2;
-    int success2 = 2;
+    int success1 = 1;
+    int success2 = 1;
 
     for (int i=1; i < N_nodes; i++) {
 	int h11 = sim_route_test_one(i, 0, 1);
 	int h12 = sim_route_test_one(0, i, 1);
-	if (h11) success1++;
-	if (h12) success1++;
+	if (h11 && h12) success1++;
 	int h21 = sim_route_test_one(i, 0, 2);
 	int h22 = sim_route_test_one(0, i, 2);
-	if (h21) success2++;
-	if (h22) success2++;
+	if (h21 && h22) success2++;
 
     	printf(VTIME_FORMAT " %d Route %d %d  %d %d\n", vtime, i, h11, h12, h21, h22);
     }
     printf(VTIME_FORMAT " 0 Route_Test %f %f\n", vtime,
-	 (double)success1 / N_nodes / 2, (double)success2 / N_nodes / 2);
+	 (double)success1 / N_nodes, (double)success2 / N_nodes);
 }
 
 ////////////////////////////////////////////////////////////////  sim_prop_delay
@@ -124,20 +122,16 @@ int main(int argc, char *argv[]) {
         Eschaton = atoi(argv[2]) * VTIME_SECONDS;
     }
     
+    // Let the nodes know how to send packets and request timers.
+    node_register_callback(sim_callback);
+
     // allocate node table & initialize all the nodes
     N_nodes = topo_max_id(Topo)+1;
     Nodes = (node_t *)calloc(N_nodes, sizeof(node_t));
     for (int i=0; i < N_nodes; i++) {
         node_init(&Nodes[i], i);    
+	node_set_status(&Nodes[i], VTIME_ZERO, NODE_STATUS_AWAKE);
     }
-    
-    // Let the nodes know how to send packets and request timers.
-    node_register_callback(sim_callback);
-        
-    // Send Node #0 a timer event to kick things off.
-    node_set_status(&Nodes[0], VTIME_ZERO, NODE_STATUS_ROOT);
-    queue_event_t epoch_event = { VTIME_ZERO, &Nodes[0], NULL };
-    queue_insert(Queue, epoch_event);
     
     // while the queue isn't empty, keep on popping
     queue_event_t e;

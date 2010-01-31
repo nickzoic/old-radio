@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: plot3d,v 1.4 2010-01-29 23:57:54 nick Exp $
+# $Id: plot3d,v 1.5 2010-01-31 00:02:22 nick Exp $
 
 use strict;
 use Data::Dumper;
@@ -14,7 +14,7 @@ $filename =~ s/\.log$//;
 $filename =~ s/.*\///;
 
 my $nodes = {};
-my $hops = {};
+my $route = {};
 
 my $lasttime = 0;
 my $nexttime = 0;
@@ -30,7 +30,7 @@ while (defined($_ = <$fp>)) {
 	$nexttime ||= $t;
 	
 	while ($t > $nexttime && $interval) {
-		makeplot(sprintf('wrl/%s-%06d.wrl', $filename, $count), $nodes, $hops);
+		makeplot(sprintf('wrl/%s-%06d.wrl', $filename, $count), $nodes, $route);
 		$nexttime += $interval;
 		$count++;
 	}
@@ -46,18 +46,24 @@ while (defined($_ = <$fp>)) {
 	    $nodes->{$nn} = [ [ $x, $y, $z, $stat ], [ @ne ] ];
 	} elsif ($op eq 'Route') {
 	    my ($h1, $h2) = @rest;
-	    $hops->{$nn} = ($h1 < $h2) ? $h1 : $h2;
+	    if ($h1 && $h2) {
+		$route->{$nn} = 2;
+	    } elsif ($h1 || $h2) {
+		$route->{$nn} = 1;
+	    } else {
+		$route->{$nn} = 0;
+	    }
 	}
 	    
 }
-makeplot(sprintf('wrl/%s-%06d.wrl', $filename, $count), $nodes, $hops);
+makeplot(sprintf('wrl/%s-%06d.wrl', $filename, $count), $nodes, $route);
 
 close($fp);
 
 ##############################################################################
 
 sub makeplot {
-	my ($filename, $nodes, $hops) = @_;
+	my ($filename, $nodes, $route) = @_;
 
 	print "Plotting $filename ... ", scalar keys %$nodes, " nodes\n";
 
@@ -77,31 +83,40 @@ Viewpoint {
   orientation 0 0 1 0
 }
 
-DEF hops0 Appearance {
+DEF blackpaint Appearance {
   material Material {
     diffuseColor 0 0 0
     specularColor 0 0 0
   }
 }
 
-__EOF
-	
-	foreach my $h (1 .. 25) {
-	    my $r = $h / 25;
-	    my $g = 1 - $r;
-
-	    print $fout <<__EOF;
-DEF hops$h Appearance {
+DEF bluepaint Appearance {
  material Material {
-    diffuseColor $r $g 0
-    specularColor $r $g 0
+    diffuseColor 0 0 1
+    specularColor 0 0 1
   }
 }
 
-__EOF
-	}
+DEF greenpaint Appearance {
+ material Material {
+    diffuseColor 0 1 0
+    specularColor 0 1 0
+  }
+}
 
-	print $fout <<__EOF;
+DEF redpaint Appearance {
+ material Material {
+    diffuseColor 1 0 0 
+    specularColor 1 0 0
+  }
+}
+
+DEF orangepaint Appearance {
+ material Material {
+    diffuseColor 1 0.5 0 
+    specularColor 1 0.5 0
+  }
+}
 
 DEF label FontStyle {
   size 18
@@ -110,7 +125,7 @@ DEF label FontStyle {
 }
 
 Shape {
-  appearance USE hops0
+  appearance USE blackpaint
   geometry IndexedLineSet {
     coord Coordinate {
       point [
@@ -162,7 +177,18 @@ __EOF
 
 	foreach my $n1 (keys %$nodes) {
 		my ($x, $y, $z, $stat) = @{$nodes->{$n1}[0]};
-		my $h = $hops->{$n1} || 0;
+		my $paint;
+		if ($stat != 2) {
+			$paint = 'bluepaint';
+		} elsif (not defined $route->{$n1}) {
+			$paint = 'blackpaint';
+		} elsif ($route->{$n1} == 2) {
+			$paint = 'greenpaint';
+		} elsif ($route->{$n1} == 1) {
+			$paint = 'orangepaint';
+		} else {
+			$paint = 'redpaint';
+		}
 		print $fout <<__EOF;
 
 Transform {  
@@ -174,7 +200,7 @@ Transform {
  	  translation 0 -7 15
 	  children [
             Shape {
-	      appearance USE hops$h
+	      appearance USE $paint
               geometry Text {
     	        string [ "$n1" ]
 	        fontStyle USE label
