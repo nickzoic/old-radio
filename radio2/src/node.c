@@ -1,8 +1,9 @@
-// $Id: node.c,v 1.32 2010-01-31 00:02:21 nick Exp $
+// $Id: node.c,v 1.32 2010-01-31 00:02:21 nick Exp 
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include "node.h"
 
@@ -22,18 +23,24 @@ void (*Node_callback)(node_t *, vtime_t, packet_t *) = NULL;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void node_init(node_t *node, node_id_t id) {
+void node_init(node_t *node, node_id_t id, char *node_opts) {
     node->id = id;
     node->status = NODE_STATUS_ASLEEP;
     node->neigh_table = neigh_table_new();
     virtloc_init(&node->virtloc, id);
+
+    if (strchr(node_opts, 'R') && (id == 0)) {
+	node_set_status(node, VTIME_ZERO, NODE_STATUS_ROOT);
+    } else if (strchr(node_opts, 'A')) {
+	node_set_status(node, VTIME_ZERO, NODE_STATUS_AWAKE);
+    }
 }
 
 //////////////////////////////////////////////////////////////////////  node_new
 
-node_t *node_new(node_id_t id) {
+node_t *node_new(node_id_t id, char *node_opts) {
     node_t *node = calloc(1,sizeof(node_t));
-    node_init(node, id);
+    node_init(node, id, node_opts);
     return node;
 }
 

@@ -106,7 +106,7 @@ void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
 int main(int argc, char *argv[]) {
     
     if (argc < 2) {
-        fprintf(stderr, "usage: %s <topofile> [<timeout> [<dims>]]\n", argv[0]);
+        fprintf(stderr, "usage: %s <topofile> [<timeout> [<dims> [<nodeopts>]]]\n", argv[0]);
         exit(1);
     }
     
@@ -125,11 +125,11 @@ int main(int argc, char *argv[]) {
         Eschaton = atoi(argv[2]) * VTIME_SECONDS;
     }
     if (argc >= 4) {
-	Loc_set_dims(atoi(argv[3]));
+	loc_set_dims(atoi(argv[3]));
     }
-	if (strchr(argv[3], '2')) { Loc_set_dims(2) };
-	
-    }    
+
+    char *node_opts = (argc >=5) ? argv[4] : "";
+
     // Let the nodes know how to send packets and request timers.
     node_register_callback(sim_callback);
 
@@ -137,8 +137,7 @@ int main(int argc, char *argv[]) {
     N_nodes = topo_max_id(Topo)+1;
     Nodes = (node_t *)calloc(N_nodes, sizeof(node_t));
     for (int i=0; i < N_nodes; i++) {
-        node_init(&Nodes[i], i);    
-	node_set_status(&Nodes[i], VTIME_ZERO, NODE_STATUS_AWAKE);
+        node_init(&Nodes[i], i, node_opts);    
     }
     
     // while the queue isn't empty, keep on popping

@@ -1,4 +1,4 @@
-// $Id: node.h,v 1.17 2010-01-29 23:57:46 nick Exp $
+// $Id: node.h,v 1.18 2010-02-01 10:31:04 nick Exp $
 
 #ifndef _NODE_H
 #define _NODE_H
@@ -51,8 +51,8 @@ typedef struct node_beacon_s {
     neigh_t neigh[];
 } node_beacon_t;
 
-void node_init(node_t *node, node_id_t id);
-node_t *node_new(node_id_t id);
+void node_init(node_t *node, node_id_t id, char *node_opts);
+node_t *node_new(node_id_t id, char *node_opts);
 void node_set_status(node_t *node, vtime_t vtime, int status);
 
 void node_register_callback(void (*sender)(node_t *, vtime_t, packet_t *));

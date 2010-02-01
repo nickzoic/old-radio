@@ -1,4 +1,4 @@
-// $Id: serial.c,v 1.1 2009-10-21 22:55:27 nick Exp $
+// $Id: serial.c,v 1.2 2010-02-01 10:31:04 nick Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     gettimeofday(&tv, NULL);
     srand(tv.tv_sec * tv.tv_usec * getpid());
  
-    Node = node_new(atoi(argv[2]));    
+    Node = node_new(atoi(argv[2]), "");    
     
     Radio = radio_new(argv[1], B9600);
     
