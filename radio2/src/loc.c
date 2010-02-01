@@ -1,4 +1,4 @@
-// $Id: loc.c,v 1.8 2010-01-31 00:02:21 nick Exp $
+// $Id: loc.c,v 1.9 2010-02-01 02:18:56 nick Exp $
 
 // Abstract away the concept of a "location".
 // This could pretty easily be extended to be N-dimensional rather than always 3.
@@ -7,8 +7,18 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <assert.h>
 
 #include "loc.h"
+
+int Loc_dims = 3;
+
+////////////////////////////////////////////////////////////////////////////////
+
+void loc_set_dims(int dims) {
+    assert(dims >= 1 && dims <= 3) {
+    Loc_dims = dims;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -37,10 +47,9 @@ void loc_zero(loc_t *a) {
 ////////////////////////////////////////////////////////////////////////////////
 
 void loc_perturb(loc_t *a, unsigned int d) {
-    a->x += (rand()%(2*d+1)) - d;
-    a->y += (rand()%(2*d+1)) - d;
-    a->z += (rand()%(2*d+1)) - d;
-    //a->z = 0;
+                      a->x += (rand()%(2*d+1)) - d;
+    if (Loc_dims > 1) a->y += (rand()%(2*d+1)) - d else a->y = 0;
+    if (Loc_dims > 2) a->z += (rand()%(2*d+1)) - d else a->z = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

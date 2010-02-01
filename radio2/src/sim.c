@@ -16,6 +16,9 @@ int N_nodes;
 topo_t *Topo;
 vtime_t Eschaton = VTIME_INF;
 
+int Flag_initstate = 0;
+int Flag_rootnode = 1;
+
 #define SIM_PROP_DELAY (1000 * VTIME_MICROS)
 #define SIM_PROP_DELAY_PERBYTE (1000 * VTIME_MICROS)
 #define SIM_PROP_DELAY_MIN (1000 * VTIME_MICROS)
@@ -103,7 +106,7 @@ void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
 int main(int argc, char *argv[]) {
     
     if (argc < 2) {
-        fprintf(stderr, "usage: %s <topofile> [<timeout>]\n", argv[0]);
+        fprintf(stderr, "usage: %s <topofile> [<timeout> [<dims>]]\n", argv[0]);
         exit(1);
     }
     
@@ -121,7 +124,12 @@ int main(int argc, char *argv[]) {
     if (argc >= 3) {
         Eschaton = atoi(argv[2]) * VTIME_SECONDS;
     }
-    
+    if (argc >= 4) {
+	Loc_set_dims(atoi(argv[3]));
+    }
+	if (strchr(argv[3], '2')) { Loc_set_dims(2) };
+	
+    }    
     // Let the nodes know how to send packets and request timers.
     node_register_callback(sim_callback);
 
