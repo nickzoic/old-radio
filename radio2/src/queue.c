@@ -1,6 +1,7 @@
 // $Id: queue.c,v 1.5 2009-10-21 12:24:17 nick Exp $
 // queue: implements a simple Heap Queue for keeping queue_events in time order
-// It is implemented as an automatically resizing heap queue.
+// It is implemented as an automatically resizing heap queue, which should be
+// reasonably efficient.
 
 #include <stdlib.h>
 #include <assert.h>
@@ -11,6 +12,7 @@
 // PRIVATE
 
 #define QUEUE_HEAP_SIZE_MIN (1024)
+#define QUEUE_HEAP_SIZE_MAX (1024*1024)
 
 #define QUEUE_HEAP_PARENT(x) (((x)+1)/2-1)
 #define QUEUE_HEAP_LEFT(x) (((x)+1)*2-1)
@@ -20,12 +22,16 @@
 
 void _queue_resize(queue_t *queue) {
     if (queue->nevents == queue->size) {
+        assert (queue->size < QUEUE_HEAP_SIZE_MAX);
         queue->size *= 2;
-    } else if (queue->nevents < queue->size / 3 && queue->size > QUEUE_HEAP_SIZE_MIN) {    
+        if (queue->size > QUEUE_HEAP_SIZE_MAX)
+            queue->size = QUEUE_HEAP_SIZE_MAX;
+    } else if (queue->nevents < queue->size / 5 && queue->size > QUEUE_HEAP_SIZE_MIN) {    
         queue->size /= 2;
     } else {
         return;
     }
+    printf("QUEUE %ld/%ld\n", queue->nevents, queue->size);
     
     queue->events = (queue_event_t *)realloc(queue->events, queue->size * sizeof(queue_event_t));
     assert(queue->events);
@@ -82,6 +88,14 @@ void queue_insert(queue_t *queue, queue_event_t event) {
     }
     
     queue->events[i] = event;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+queue_event_t queue_top(queue_t *queue) {
+    queue_event_t e = QUEUE_EVENT_NULL;
+    if (queue->nevents) e = queue->events[0];
+    return e;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

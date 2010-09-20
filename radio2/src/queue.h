@@ -7,13 +7,15 @@
 #include "node.h"
 #include "packet.h"
 
+
 typedef struct queue_event_s {
     vtime_t vtime;
     node_t *node;
     packet_t *packet;
+    void *extra;
 } queue_event_t;
 
-#define QUEUE_EVENT_NULL { VTIME_INF, NULL, NULL }
+#define QUEUE_EVENT_NULL { VTIME_INF, NULL, NULL, NULL }
 
 typedef struct queue_s {
     long size;
@@ -26,6 +28,7 @@ typedef struct queue_s {
 queue_t *queue_new();
 
 void queue_insert(queue_t *queue, queue_event_t event);
+queue_event_t queue_top(queue_t *queue);
 queue_event_t queue_pop(queue_t *queue);
 
 void queue_free(queue_t *);

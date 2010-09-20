@@ -19,4 +19,6 @@ void loc_perturb(loc_t *a, unsigned int d);
 void loc_fprint(loc_t *a, FILE *fp);
 void loc_move_towards(loc_t *a, loc_t *b, unsigned int dist_limit);
 
+#define LOC_ZERO { 0, 0, 0 }
+
 #endif

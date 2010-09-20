@@ -14,12 +14,14 @@
 #define NODE_BEACON_SIZE (200)
 #define NODE_BEACON_MAXSTRAT (2)
 
+#define NODE_TTL_MAX (100)
+
 char *NODE_STATUS_STRINGS[] = { "ASLEEP", "WAKING", "AWAKE", "ROOT" };
 
 // this callback hook lets different frontends call the same node class
 // without too much pain.
 
-void (*Node_callback)(node_t *, vtime_t, packet_t *) = NULL;
+void (*Node_callback)(node_t *, vtime_t, packet_t *, void *) = NULL;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -55,13 +57,13 @@ void node_set_status(node_t *node, vtime_t vtime, int status) {
 	if (status != NODE_STATUS_ROOT) {
 		delay += NODE_BEACON_PERIOD * ((float)rand() / RAND_MAX + 0.5);
 	}
-    	Node_callback(node, vtime + delay, NULL);
+    	Node_callback(node, vtime + delay, NULL, NULL);
     }
 }
 
 ////////////////////////////////////////////////////////  node_register_callback
 
-void node_register_callback(void (*callback)(node_t *, vtime_t, packet_t *)) {
+void node_register_callback(void (*callback)(node_t *, vtime_t, packet_t *, void *)) {
     Node_callback = callback;
 }
 
@@ -152,7 +154,11 @@ packet_t *node_beacon(node_t *node, vtime_t vtime) {
 
 ///////////////////////////////////////////////////////////  node_receive_beacon
 
-void node_receive_beacon(node_t *node, vtime_t vtime, node_beacon_t *beacon, int nneigh) {
+void node_receive_beacon(node_t *node, vtime_t vtime, packet_t *packet) {
+    node_beacon_t *beacon = (node_beacon_t *)packet->data;
+    assert(((packet->length - sizeof(node_beacon_header_t)) % sizeof(neigh_t)) == 0);
+    int nneigh = (packet->length - sizeof(node_beacon_header_t)) / sizeof(neigh_t);
+                
     printf(VTIME_FORMAT " %6d RecvBeacon %d %d %d\n", vtime, node->id,
            beacon->neigh[0].id, beacon->header.status, nneigh);
     
@@ -178,7 +184,7 @@ void node_receive_beacon(node_t *node, vtime_t vtime, node_beacon_t *beacon, int
         
         // ... and starts the callback timer.
         
-        Node_callback(node, vtime + NODE_BEACON_PERIOD, NULL);
+        Node_callback(node, vtime + NODE_BEACON_PERIOD, NULL, NULL);
     }
         
     // Check that this neighbour is bidirectional before listing them ...
@@ -226,6 +232,80 @@ void node_receive_beacon(node_t *node, vtime_t vtime, node_beacon_t *beacon, int
     node_neigh_dump(node, vtime);
 }
 
+////////////////////////////////////////////////////////////////  node_send_data
+
+void node_send_data(node_t *node, vtime_t vtime, packet_data_t data)
+{
+    packet_t *packet = packet_new(sizeof(data), &data);
+    Node_callback(node, vtime, packet, NULL);
+    packet_free(packet);
+}
+
+/////////////////////////////////////////////////////////////  node_forward_data
+
+void node_forward_data(node_t *node, vtime_t vtime, packet_data_t data)
+{
+    data.ttl--;
+    data.hop = node_route_mfr(node, data.dst, data.dstloc, 1);
+    
+    printf(VTIME_FORMAT " %6d FwdData %6d %6d %6d ttl %d\n",
+           vtime, node->id, data.src, data.hop, data.dst, data.ttl);
+    
+    if (data.hop == NODE_ID_INVALID) return;
+    
+    node_send_data(node, vtime, data);
+}
+
+/////////////////////////////////////////////////////////////  node_receive_data
+
+void node_receive_data(node_t *node, vtime_t vtime, packet_t *packet)
+{
+    assert(packet->length >= sizeof(packet_data_t));
+    packet_data_t *data = (packet_data_t *)packet->data;
+    if (data->hop != node->id) return;
+    
+    printf(VTIME_FORMAT " %6d RecvData %6d -> %6d ttl %d\n",
+           vtime, node->id, data->src, data->dst, data->ttl);
+    
+    if (data->dst == node->id) {
+        printf(VTIME_FORMAT " %6d Received %6d " VTIME_FORMAT "\n",
+               vtime, node->id, data->src, data->vtime);
+    } else {
+        node_forward_data(node, vtime, *data);
+    }
+}
+
+///////////////////////////////////////////////////////////////  node_send_flood
+
+void node_send_flood(node_t *node, vtime_t vtime, packet_t *packet)
+{
+    if (vtime > node->flood_timeout) {
+        printf(VTIME_FORMAT " %6d SendFlood\n", vtime, node->id);
+        Node_callback(node, vtime, packet, NULL);
+        node->flood_timeout = vtime + NODE_FLOOD_TIMEOUT;
+    }
+}
+
+//////////////////////////////////////////////////////////////  node_start_flood
+
+void node_start_flood(node_t *node, vtime_t vtime)
+{
+    packet_flood_t *
+}
+////////////////////////////////////////////////////////////  node_receive_flood
+
+void node_receive_flood(node_t *node, vtime_t vtime, packet_t *packet)
+{
+    printf(VTIME_FORMAT " %6d RecvFlood\n", vtime, node->id);
+    node_send_flood(node, vtime, packet);
+    
+    packet_data_t reply;
+    reply.src = node->id;
+    reply.srcloc = node->virtloc.loc;
+    
+    node_send_data(node, vtime, reply)
+}
+
 //////////////////////////////////////////////////////////////////  node_receive
 
 void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
@@ -233,34 +313,36 @@ void node_receive(node_t *node, vtime_t vtime, packet_t *packet) {
     assert(packet);
     assert(Node_callback);
     
-    switch (packet->data[0]) {
-        
-        case PACKET_TYPE_BEACON:
-            do { } while (0);
-            node_beacon_t *beacon = (node_beacon_t *)packet->data;
-            assert(((packet->length - sizeof(node_beacon_header_t)) % sizeof(neigh_t)) == 0);
-            int nneigh = (packet->length - sizeof(node_beacon_header_t)) / sizeof(neigh_t);
-            node_receive_beacon(node, vtime, beacon, nneigh);
-          break;
-        
-        case PACKET_TYPE_FLOOD:
-            if (vtime > node->flood_timeout) {
-                printf(VTIME_FORMAT " %6d Flood %.*s\n", vtime, node->id, (int)(packet->length)-1, (packet->data)+1);
-                Node_callback(node, vtime, packet);
-                node->flood_timeout = vtime + NODE_FLOOD_TIMEOUT;
-            }
-          break;
-        
-        default:
-            printf(VTIME_FORMAT " %6d ERR Unknown packet type %02X length %ld\n",
-                   vtime, node->id, (packet->data)[0], (long)packet->length);
-          break;
+    unsigned char data_type = packet->length ? packet->data[0] : 0;
+    
+    if (data_type == PACKET_TYPE_BEACON) {
+        node_receive_beacon(node, vtime, packet);
     }
+    else if (data_type == PACKET_TYPE_FLOOD) {
+        node_receive_flood(node, vtime, packet);
+    }    
+    else if (data_type == PACKET_TYPE_DATA) {
+        node_receive_data(node, vtime, packet);
+    }    
+    else {
+        printf(VTIME_FORMAT " %6d ERR Unknown packet type %02X length %ld\n",
+                vtime, node->id, data_type, (long)packet->length);
+    }
+}
+
+///////////////////////////////////////////////////////////  node_virtloc_recalc
+    
+void node_virtloc_recalc(node_t *node, vtime_t vtime) {
+    printf(VTIME_FORMAT " %6d VirtBefore  %d %d %d\n", vtime, node->id,
+           node->virtloc.loc.x, node->virtloc.loc.y, node->virtloc.loc.z);
+    virtloc_recalc(&node->virtloc, node->neigh_table);
+    printf(VTIME_FORMAT " %6d VirtAfter  %d %d %d\n", vtime, node->id,
+           node->virtloc.loc.x, node->virtloc.loc.y, node->virtloc.loc.z);
 }
 
 ////////////////////////////////////////////////////////////////////  node_timer
 
-void node_timer(node_t *node, vtime_t vtime) {
+void node_timer(node_t *node, vtime_t vtime, void *extra) {
     assert(node);
     assert(Node_callback);
     
@@ -272,22 +354,35 @@ void node_timer(node_t *node, vtime_t vtime) {
         node_set_status(node, vtime, NODE_STATUS_AWAKE);
     }
     
-    
-    //if (node->status != NODE_STATUS_ROOT) {
-        printf(VTIME_FORMAT " %6d VirtBefore  %d %d %d\n", vtime, node->id,
-               node->virtloc.loc.x, node->virtloc.loc.y, node->virtloc.loc.z);
-        virtloc_recalc(&node->virtloc, node->neigh_table);
-        printf(VTIME_FORMAT " %6d VirtAfter  %d %d %d\n", vtime, node->id,
-               node->virtloc.loc.x, node->virtloc.loc.y, node->virtloc.loc.z);
-    //}    
-    
-    packet_t *p = node_beacon(node, vtime);
-    
-    Node_callback(node, vtime, p);
-    long delay = NODE_BEACON_PERIOD * ((float)rand() / RAND_MAX + 0.5);
-    Node_callback(node, vtime + delay, NULL);
+    node_virtloc_recalc(node, vtime);
 
+    // send a beacon
+    packet_t *p = node_beacon(node, vtime);
+    Node_callback(node, vtime, p, NULL);
     packet_free(p);
+    
+    // set timer for next event
+    long delay = NODE_BEACON_PERIOD * ((float)rand() / RAND_MAX + 0.5);
+    Node_callback(node, vtime + delay, NULL, extra);
+}
+
+///////////////////////////////////////////////////////////////  node_route_test
+
+void node_route_test(node_t *node, vtime_t vtime) {
+    // send a data packet to the root node to test routing
+
+    packet_data_t data;
+    data.packet_type = PACKET_TYPE_DATA;
+    data.src = node->id;
+    data.srcloc = node->virtloc.loc;
+    data.dst = 0;
+    loc_zero(&data.dstloc);
+    data.ttl = NODE_TTL_MAX;
+    data.vtime = vtime;
+    
+    printf(VTIME_FORMAT " %6d NodeRouteTest\n", vtime, node->id);
+    
+    node_forward_data(node, vtime, data);
 }
 
 ///////////////////////////////////////////////////////////////////  node_deinit

@@ -74,7 +74,7 @@ vtime_t sim_timer_delay(vtime_t vtime) {
 
 //////////////////////////////////////////////////////////////////  sim_callback
 
-void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
+void sim_callback(node_t *node, vtime_t vtime, packet_t *packet, void *extra) {
 
     if (packet) {
         topo_iter_t *topo_iter = topo_iter_new(Topo, node->id);
@@ -86,6 +86,7 @@ void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
             if (e.vtime < Eschaton) {
                 e.node = &Nodes[t->dst];
                 e.packet = packet_clone(packet);
+                e.extra = extra;
                 queue_insert(Queue, e);
             }
         }
@@ -96,6 +97,7 @@ void sim_callback(node_t *node, vtime_t vtime, packet_t *packet) {
         if (e.vtime < Eschaton) {
             e.node = node;
             e.packet = NULL;
+            e.extra = extra;
             queue_insert(Queue, e);
         }
     }
@@ -146,17 +148,25 @@ int main(int argc, char *argv[]) {
     while ((e = queue_pop(Queue)).vtime != VTIME_INF) {
         if (e.vtime > vtime_tick) {
             fprintf(stderr, ".");
-	    sim_route_test(vtime_tick);
+	    
+            sim_route_test(vtime_tick);
+            for (int i=0; i < N_nodes; i++) {
+                node_route_test(&Nodes[i], vtime_tick);
+            }
+            
             vtime_tick += VTIME_SECONDS;
         }
+        
         if (e.packet) {
             node_receive(e.node, e.vtime, e.packet);
             packet_free(e.packet);
         } else {
-            node_timer(e.node, e.vtime);
+            node_timer(e.node, e.vtime, e.extra);
         }
     }
 
+    sim_route_test(vtime_tick);
+            
     for (int i=0; i < N_nodes; i++) {
         node_deinit(&Nodes[i]);    
     }

@@ -8,6 +8,8 @@
 #define TOPO_TABLEOFFS (30)
 #define TOPO_MAXENTRIES (9000)
 
+// XXX DOESN'T HANDLE REPEATED ENTRIES CORRECTLY AND ISN'T ALL THAT EFFICIENT
+
 ////////////////////////////////////////////////////////////////////////////////
 
 topo_t *topo_new() {
@@ -27,6 +29,11 @@ void topo_insert(topo_t *topo, topo_entry_t entry) {
     
     int n = (TOPO_TABLEOFFS * entry.src) % TOPO_TABLESIZE;
     while (topo->table[n].src != topo->table[n].dst) {
+        if (topo->table[n].src == entry.src && topo->table[n].dst == entry.dst) {
+            // squish duplicates
+            topo->table[n] = entry;
+            return;
+        }
         n = (n + 1) % TOPO_TABLESIZE;
     }
     topo->table[n] = entry;

@@ -25,16 +25,22 @@
 
 node_t *Node;
 radio_t *Radio;
+
+// this should be replaced by an event queue just like in the simulator.
+// instead of using Timer, use queue_top(Queue).vtime as the time of the
+// next event.
 vtime_t Timer = VTIME_INF;
+void *Extra = NULL;
 
 ///////////////////////////////////////////////////////////////  serial_callback
 
-void serial_callback(node_t *node, vtime_t vtime, packet_t *packet) {
+void serial_callback(node_t *node, vtime_t vtime, packet_t *packet, void *extra) {
     if (packet) {
 	radio_send(Radio, packet);
     } else {
 	assert(vtime < Timer);
 	Timer = vtime;
+	Extra = extra;
     }
 }
 
@@ -46,7 +52,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "usage: %s <device> <id> <timeout>\n", argv[0]);
         exit(1);
     }
-    
+
     // seed the PRNG from some randomish stuff ...
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -82,7 +88,7 @@ int main(int argc, char **argv) {
 	}
 	if (vtime >= Timer) {
 	    Timer = VTIME_INF;
-	    node_timer(Node, vtime);
+	    node_timer(Node, vtime, Extra);
 	}
 	vtime = vtime_from_wall();
     }	

@@ -15,6 +15,8 @@
 typedef uint16_t neigh_id_t;
 typedef uint8_t neigh_stratum_t;
 
+#define NEIGH_ID_INVALID (0xFFFF)
+
 #define NEIGH_STRATUM_INF (10)
 
 typedef struct neigh_s {

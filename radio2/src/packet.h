@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 #include "loc.h"
+#include "neigh.h"
 
 typedef struct packet_s {
     size_t length;
@@ -21,6 +22,18 @@ void packet_free(packet_t *p);
 
 #define PACKET_TYPE_BEACON (0xBE)
 #define PACKET_TYPE_FLOOD (0xF0)
+#define PACKET_TYPE_FLOODREPLY (0xF1)
 #define PACKET_TYPE_DATA (0xDA)
+
+typedef struct packet_data_s {
+    unsigned char packet_type;
+    neigh_id_t src;
+    neigh_id_t dst;
+    neigh_id_t hop;
+    loc_t srcloc;
+    loc_t dstloc;
+    int ttl;
+    vtime_t vtime;
+} __attribute__((__packed__)) packet_data_t;
 
 #endif

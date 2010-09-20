@@ -55,12 +55,14 @@ void node_init(node_t *node, node_id_t id, char *node_opts);
 node_t *node_new(node_id_t id, char *node_opts);
 void node_set_status(node_t *node, vtime_t vtime, int status);
 
-void node_register_callback(void (*sender)(node_t *, vtime_t, packet_t *));
+void node_register_callback(void (*sender)(node_t *, vtime_t, packet_t *, void *));
 
 node_id_t node_route_mfr(node_t *node, node_id_t dest_id, loc_t dest_loc, int maxstrat);
 
 void node_receive(node_t *node, vtime_t vtime, packet_t *packet);
-void node_timer(node_t *node, vtime_t vtime);
+void node_timer(node_t *node, vtime_t vtime, void *extra);
+
+void node_route_test(node_t *node, vtime_t vtime);
 
 void node_deinit(node_t *node);
 void node_free(node_t *node);
